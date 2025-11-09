@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router';
 import { z } from 'zod';
 
 import { paths } from '@/config/paths';
+import { useFirebaseUser, useFirebaseLogout } from './firebase-auth';
 
 // Simplified auth without backend - ready for your custom backend later
 
@@ -21,11 +22,9 @@ export const registerInputSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 
-// Placeholder hooks - replace with your backend implementation later
-export const useUser = () => ({ data: null, isLoading: false });
-export const useLogin = () => ({ mutate: () => {}, isLoading: false });
-export const useLogout = () => ({ mutate: () => {}, isLoading: false });
-export const useRegister = () => ({ mutate: () => {}, isLoading: false });
+// Use Firebase hooks
+export const useUser = useFirebaseUser;
+export const useLogout = useFirebaseLogout;
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useUser();
