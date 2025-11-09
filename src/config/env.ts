@@ -2,8 +2,15 @@ import * as z from 'zod';
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    API_URL: z.string().optional().default('/api'),
+    API_URL: z.string(),
     APP_URL: z.string().optional().default('http://localhost:3000'),
+    FIREBASE_API_KEY: z.string(),
+    FIREBASE_AUTH_DOMAIN: z.string(),
+    FIREBASE_PROJECT_ID: z.string(),
+    FIREBASE_STORAGE_BUCKET: z.string(),
+    FIREBASE_MESSAGING_SENDER_ID: z.string(),
+    FIREBASE_APP_ID: z.string(),
+    FIREBASE_MEASUREMENT_ID: z.string().optional(),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<

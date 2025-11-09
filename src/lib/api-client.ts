@@ -1,6 +1,8 @@
 import Axios, { InternalAxiosRequestConfig } from 'axios';
 
-// Simplified API client - configure this when you connect your backend
+import { env } from '@/config/env';
+
+// API client configured for your backend
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
@@ -10,9 +12,9 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   return config;
 }
 
-// Create axios instance - update baseURL when your backend is ready
+// Create axios instance with your backend URL
 export const api = Axios.create({
-  baseURL: '/api', // Change this to your backend URL
+  baseURL: env.API_URL,
 });
 
 api.interceptors.request.use(authRequestInterceptor);
