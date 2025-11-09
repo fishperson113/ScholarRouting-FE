@@ -26,6 +26,18 @@ export const paths = {
       path: '',
       getHref: () => '/app',
     },
+    scholarships: {
+      path: 'scholarships',
+      getHref: () => '/app/scholarships',
+    },
+    applications: {
+      path: 'applications',
+      getHref: () => '/app/applications',
+    },
+    deadlines: {
+      path: 'deadlines',
+      getHref: () => '/app/deadlines',
+    },
     discussions: {
       path: 'discussions',
       getHref: () => '/app/discussions',

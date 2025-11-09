@@ -1,27 +1,35 @@
-import { Link, useSearchParams } from 'react-router';
+import { Link, useSearchParams, useNavigate } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/config/paths';
-import { useLogin, loginInputSchema } from '@/lib/auth';
+import { loginInputSchema } from '@/lib/auth';
 
 type LoginFormProps = {
   onSuccess: () => void;
 };
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
-  const login = useLogin({
-    onSuccess,
-  });
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
+
+  const handleLogin = (values: any) => {
+    // TODO: Implement your backend login here
+    console.log('Login with:', values);
+    
+    // For now, just redirect to dashboard
+    // Replace this with actual API call when backend is ready
+    setTimeout(() => {
+      navigate(paths.app.dashboard.getHref());
+      onSuccess();
+    }, 500);
+  };
 
   return (
     <div>
       <Form
-        onSubmit={(values) => {
-          login.mutate(values);
-        }}
+        onSubmit={handleLogin}
         schema={loginInputSchema}
       >
         {({ register, formState }) => (
@@ -40,7 +48,6 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
             />
             <div>
               <Button
-                isLoading={login.isPending}
                 type="submit"
                 className="w-full"
               >

@@ -1,42 +1,25 @@
 import Axios, { InternalAxiosRequestConfig } from 'axios';
 
-import { useNotifications } from '@/components/ui/notifications';
-import { env } from '@/config/env';
-import { paths } from '@/config/paths';
+// Simplified API client - configure this when you connect your backend
 
 function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.headers) {
     config.headers.Accept = 'application/json';
   }
-
   config.withCredentials = true;
   return config;
 }
 
+// Create axios instance - update baseURL when your backend is ready
 export const api = Axios.create({
-  baseURL: env.API_URL,
+  baseURL: '/api', // Change this to your backend URL
 });
 
 api.interceptors.request.use(authRequestInterceptor);
 api.interceptors.response.use(
-  (response) => {
-    return response.data;
-  },
+  (response) => response.data,
   (error) => {
-    const message = error.response?.data?.message || error.message;
-    useNotifications.getState().addNotification({
-      type: 'error',
-      title: 'Error',
-      message,
-    });
-
-    if (error.response?.status === 401) {
-      const searchParams = new URLSearchParams();
-      const redirectTo =
-        searchParams.get('redirectTo') || window.location.pathname;
-      window.location.href = paths.auth.login.getHref(redirectTo);
-    }
-
+    console.error('API Error:', error);
     return Promise.reject(error);
   },
 );
