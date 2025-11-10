@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { doc, getDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
+import { AuthDialog } from '@/components/auth';
 import { paths } from '@/config/paths';
 import { useUser, useLogout } from '@/lib/auth';
 import { db } from '@/lib/firebase';
@@ -59,6 +60,8 @@ export const LandingNav = () => {
   const logout = useLogout();
   const isAuthenticated = !!user.data;
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get user profile data from Firestore
@@ -199,7 +202,10 @@ export const LandingNav = () => {
                 {/* Sign In Button */}
                 <Button
                   variant="ghost"
-                  onClick={() => navigate(paths.auth.login.getHref())}
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                  }}
                   className="text-gray-600 hover:text-gray-900"
                 >
                   Sign in
@@ -207,7 +213,10 @@ export const LandingNav = () => {
 
                 {/* Sign Up Button */}
                 <Button
-                  onClick={() => navigate(paths.auth.register.getHref())}
+                  onClick={() => {
+                    setAuthMode('register');
+                    setIsAuthDialogOpen(true);
+                  }}
                   className="bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   Sign up
@@ -217,6 +226,13 @@ export const LandingNav = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Dialog */}
+      <AuthDialog
+        isOpen={isAuthDialogOpen}
+        onClose={() => setIsAuthDialogOpen(false)}
+        defaultMode={authMode}
+      />
     </nav>
   );
 };

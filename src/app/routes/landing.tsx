@@ -1,20 +1,34 @@
 import { ArrowRight, Globe, TrendingUp, Users, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useState } from 'react';
 
 import { Head } from '@/components/seo';
 import { Button } from '@/components/ui/button';
 import { LandingNav } from '@/components/layouts/landing-nav';
+import { AuthDialog } from '@/components/auth';
 import { paths } from '@/config/paths';
+import { useUser } from '@/lib/auth';
 
 const LandingRoute = () => {
   const navigate = useNavigate();
+  const user = useUser();
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const isAuthenticated = !!user.data;
 
   const handleGetStarted = () => {
-    navigate(paths.auth.register.getHref());
+    if (isAuthenticated) {
+      navigate(paths.app.dashboard.getHref());
+    } else {
+      setIsAuthDialogOpen(true);
+    }
   };
 
   const handleBrowseScholarships = () => {
-    navigate(paths.app.scholarships.getHref());
+    if (isAuthenticated) {
+      navigate(paths.app.scholarships.getHref());
+    } else {
+      setIsAuthDialogOpen(true);
+    }
   };
 
   return (
@@ -132,6 +146,13 @@ const LandingRoute = () => {
             </p>
           </div>
         </section>
+
+        {/* Auth Dialog */}
+        <AuthDialog
+          isOpen={isAuthDialogOpen}
+          onClose={() => setIsAuthDialogOpen(false)}
+          defaultMode="register"
+        />
       </div>
     </>
   );

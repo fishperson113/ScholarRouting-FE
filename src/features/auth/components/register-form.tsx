@@ -1,4 +1,4 @@
-import { Link, useSearchParams, useNavigate } from 'react-router';
+import { useSearchParams } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
@@ -11,7 +11,6 @@ type RegisterFormProps = {
 };
 
 export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
   
@@ -21,7 +20,6 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
   const handleRegister = async (values: any) => {
     try {
       await firebaseRegister.mutateAsync(values);
-      navigate(paths.app.dashboard.getHref());
       onSuccess();
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -32,7 +30,6 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
   const handleGoogleSignIn = async () => {
     try {
       await googleSignIn.mutateAsync();
-      navigate(paths.app.dashboard.getHref());
       onSuccess();
     } catch (error: any) {
       console.error('Google sign-in error:', error);
@@ -127,16 +124,7 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         Sign up with Google
       </Button>
 
-      <div className="mt-2 flex items-center justify-end">
-        <div className="text-sm">
-          <Link
-            to={paths.auth.login.getHref(redirectTo)}
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Log In
-          </Link>
-        </div>
-      </div>
+
     </div>
   );
 };

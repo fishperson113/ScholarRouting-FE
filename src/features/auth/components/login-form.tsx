@@ -1,4 +1,4 @@
-import { Link, useSearchParams, useNavigate } from 'react-router';
+import { useSearchParams } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
@@ -11,7 +11,6 @@ type LoginFormProps = {
 };
 
 export const LoginForm = ({ onSuccess }: LoginFormProps) => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
   
@@ -21,7 +20,6 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const handleLogin = async (values: any) => {
     try {
       await firebaseLogin.mutateAsync(values);
-      navigate(paths.app.dashboard.getHref());
       onSuccess();
     } catch (error: any) {
       console.error('Login error:', error);
@@ -34,7 +32,6 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
       console.log('Starting Google sign-in...');
       const result = await googleSignInWithAPI.mutateAsync();
       console.log('Google sign-in successful:', result);
-      navigate(paths.app.dashboard.getHref());
       onSuccess();
     } catch (error: any) {
       console.error('Google sign-in error:', error);
@@ -119,16 +116,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         Sign in with Google
       </Button>
 
-      <div className="mt-2 flex items-center justify-end">
-        <div className="text-sm">
-          <Link
-            to={paths.auth.register.getHref(redirectTo)}
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Register
-          </Link>
-        </div>
-      </div>
+
     </div>
   );
 };
