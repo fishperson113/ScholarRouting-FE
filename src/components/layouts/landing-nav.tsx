@@ -1,10 +1,57 @@
 import { Bell, ChevronDown, LogOut, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { doc, getDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
 import { useUser, useLogout } from '@/lib/auth';
+import { db } from '@/lib/firebase';
+
+// Helper functions
+const getInitials = (firstName?: string, lastName?: string, displayName?: string, email?: string) => {
+  if (firstName && lastName) {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  }
+  if (displayName) {
+    const names = displayName.split(' ');
+    if (names.length >= 2) {
+      return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
+    }
+    return displayName.charAt(0).toUpperCase();
+  }
+  if (email) {
+    return email.charAt(0).toUpperCase();
+  }
+  return 'U';
+};
+
+const getDisplayName = (firstName?: string, lastName?: string, displayName?: string, email?: string) => {
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`;
+  }
+  if (displayName) {
+    return displayName;
+  }
+  if (email) {
+    return email.split('@')[0];
+  }
+  return 'User';
+};
+
+// Hook to get user profile data
+const useUserProfile = (userId?: string) => {
+  return useQuery({
+    queryKey: ['user-profile', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      return userDoc.exists() ? userDoc.data() : null;
+    },
+    enabled: !!userId,
+  });
+};
 
 export const LandingNav = () => {
   const navigate = useNavigate();
@@ -13,6 +60,21 @@ export const LandingNav = () => {
   const isAuthenticated = !!user.data;
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get user profile data from Firestore
+  const userProfile = useUserProfile(user.data?.uid);
+
+  // Combine Firebase user data with Firestore profile data
+  const userData = {
+    firstName: userProfile.data?.firstName,
+    lastName: userProfile.data?.lastName,
+    displayName: user.data?.displayName,
+    email: user.data?.email,
+    photoURL: user.data?.photoURL || userProfile.data?.photoURL,
+  };
+
+  const userInitials = getInitials(userData.firstName, userData.lastName, userData.displayName || undefined, userData.email || undefined);
+  const displayName = getDisplayName(userData.firstName, userData.lastName, userData.displayName || undefined, userData.email || undefined);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -86,11 +148,19 @@ export const LandingNav = () => {
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                     className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
                   >
-                    <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">T</span>
-                    </div>
+                    {userData.photoURL ? (
+                      <img
+                        src={userData.photoURL}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">{userInitials}</span>
+                      </div>
+                    )}
                     <span className="hidden md:block text-sm font-medium text-gray-700">
-                      Trần Dương Tuấn
+                      {displayName}
                     </span>
                     <ChevronDown className="w-4 h-4 text-gray-500" />
                   </button>
