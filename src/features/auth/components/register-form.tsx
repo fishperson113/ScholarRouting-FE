@@ -1,5 +1,3 @@
-import { useSearchParams } from 'react-router';
-
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { registerInputSchema } from '@/lib/auth';
@@ -7,11 +5,10 @@ import { useAuth } from '@/hooks/use-auth';
 
 type RegisterFormProps = {
   onSuccess?: (method?: 'google' | 'email') => void;
+  redirectTo?: string | null;
 };
 
-export const RegisterForm = ({ onSuccess }: RegisterFormProps = {}) => {
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo');
+export const RegisterForm = ({ onSuccess, redirectTo }: RegisterFormProps = {}) => {
   const { register: registerUser, loginWithGoogle, isLoading } = useAuth({ redirectTo, onSuccess });
 
   return (

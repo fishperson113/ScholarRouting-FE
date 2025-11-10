@@ -1,5 +1,3 @@
-import { useSearchParams } from 'react-router';
-
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { loginInputSchema } from '@/lib/auth';
@@ -7,11 +5,10 @@ import { useAuth } from '@/hooks/use-auth';
 
 type LoginFormProps = {
   onSuccess?: (method?: 'google' | 'email') => void;
+  redirectTo?: string | null;
 };
 
-export const LoginForm = ({ onSuccess }: LoginFormProps = {}) => {
-  const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo');
+export const LoginForm = ({ onSuccess, redirectTo }: LoginFormProps = {}) => {
   const { login, loginWithGoogle, isLoading } = useAuth({ redirectTo, onSuccess });
 
   return (
