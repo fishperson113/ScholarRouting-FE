@@ -19,36 +19,36 @@ export const paths = {
 
   app: {
     root: {
-      path: '/app',
-      getHref: () => '/app',
+      path: '/',
+      getHref: () => '/',
     },
     scholarships: {
-      path: '',
-      getHref: () => '/app',
+      path: 'scholarships',
+      getHref: () => '/scholarships',
     },
     applications: {
       path: 'applications',
-      getHref: () => '/app/applications',
+      getHref: () => '/applications',
     },
     deadlines: {
       path: 'deadlines',
-      getHref: () => '/app/deadlines',
+      getHref: () => '/deadlines',
     },
     discussions: {
       path: 'discussions',
-      getHref: () => '/app/discussions',
+      getHref: () => '/discussions',
     },
     discussion: {
       path: 'discussions/:discussionId',
-      getHref: (id: string) => `/app/discussions/${id}`,
+      getHref: (id: string) => `/discussions/${id}`,
     },
     users: {
       path: 'users',
-      getHref: () => '/app/users',
+      getHref: () => '/users',
     },
     profile: {
       path: 'profile',
-      getHref: () => '/app/profile',
+      getHref: () => '/profile',
     },
   },
 } as const;

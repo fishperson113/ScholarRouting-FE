@@ -36,7 +36,7 @@ export const createAppRouter = (queryClient: QueryClient) =>
       lazy: () => import('./routes/auth/login').then(convert(queryClient)),
     },
     {
-      path: paths.app.root.path,
+      path: '/',
       element: (
         <ProtectedRoute>
           <AppRoot />
@@ -44,6 +44,18 @@ export const createAppRouter = (queryClient: QueryClient) =>
       ),
       ErrorBoundary: AppRootErrorBoundary,
       children: [
+        {
+          path: paths.app.scholarships.path,
+          lazy: () => import('./routes/app/scholarship').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.applications.path,
+          lazy: () => import('./routes/app/applications').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.deadlines.path,
+          lazy: () => import('./routes/app/deadline').then(convert(queryClient)),
+        },
         {
           path: paths.app.discussions.path,
           lazy: () =>
@@ -65,18 +77,6 @@ export const createAppRouter = (queryClient: QueryClient) =>
         {
           path: paths.app.profile.path,
           lazy: () => import('./routes/app/profile').then(convert(queryClient)),
-        },
-        {
-          path: paths.app.scholarships.path,
-          lazy: () => import('./routes/app/scholarship').then(convert(queryClient)),
-        },
-        {
-          path: paths.app.applications.path,
-          lazy: () => import('./routes/app/applications').then(convert(queryClient)),
-        },
-        {
-          path: paths.app.deadlines.path,
-          lazy: () => import('./routes/app/deadline').then(convert(queryClient)),
         },
       ],
     },

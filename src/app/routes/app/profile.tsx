@@ -20,8 +20,9 @@ const ProfileRoute = () => {
   if (!user.data) return null;
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Profile</h1>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
       <div className="overflow-hidden bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
           <div className="flex justify-between">
@@ -43,6 +44,7 @@ const ProfileRoute = () => {
             <Entry label="Bio" value="N/A" />
           </dl>
         </div>
+      </div>
       </div>
     </div>
   );

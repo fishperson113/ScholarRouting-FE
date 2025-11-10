@@ -92,7 +92,8 @@ const ScholarshipRoute = () => {
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
       {/* Search Bar */}
       <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -297,6 +298,7 @@ const ScholarshipRoute = () => {
         onClose={() => setShowFilters(false)}
         filterOptions={filterOptions}
       />
+      </div>
     </div>
   );
 };
