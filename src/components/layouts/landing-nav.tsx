@@ -1,14 +1,32 @@
-import { Bell } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, User } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
+import { useState, useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
-import { useUser } from '@/lib/auth';
+import { useUser, useLogout } from '@/lib/auth';
 
 export const LandingNav = () => {
   const navigate = useNavigate();
   const user = useUser();
+  const logout = useLogout();
   const isAuthenticated = !!user.data;
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
@@ -63,13 +81,47 @@ export const LandingNav = () => {
                 </button>
 
                 {/* User Profile */}
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">T</span>
-                  </div>
-                  <span className="hidden md:block text-sm font-medium text-gray-700">
-                    Trần Dương Tuấn
-                  </span>
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                  >
+                    <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">T</span>
+                    </div>
+                    <span className="hidden md:block text-sm font-medium text-gray-700">
+                      Trần Dương Tuấn
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                      <Link
+                        to={paths.app.profile.getHref()}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        onClick={() => setIsProfileDropdownOpen(false)}
+                      >
+                        <User className="w-4 h-4 mr-3" />
+                        Profile
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout.mutate(undefined, {
+                            onSuccess: () => {
+                              navigate(paths.home.getHref());
+                            }
+                          });
+                          setIsProfileDropdownOpen(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4 mr-3" />
+                        Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
