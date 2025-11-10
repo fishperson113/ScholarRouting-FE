@@ -8,13 +8,14 @@ import {
   ScholarshipFilters,
   Scholarship
 } from '@/features/scholarships/api';
-import { ScholarshipFiltersComponent } from '@/features/scholarships/components/scholarship-filters';
+import { ScholarshipFiltersComponent, ExtendedScholarshipFilters } from '@/features/scholarships/components/scholarship-filters';
+import { ScholarshipSidebarFilters } from '@/features/scholarships/components/scholarship-sidebar-filters';
 
 const ScholarshipRoute = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('Best Match');
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<ScholarshipFilters>({});
+  const [filters, setFilters] = useState<ExtendedScholarshipFilters>({});
   const [scholarships, setScholarships] = useState<Scholarship[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [filterOptions, setFilterOptions] = useState<any>(null);
@@ -80,16 +81,20 @@ const ScholarshipRoute = () => {
     setSearchQuery(e.target.value);
   };
 
-  const handleFiltersChange = (newFilters: ScholarshipFilters) => {
+  const handleFiltersChange = (newFilters: ExtendedScholarshipFilters) => {
     setFilters(newFilters);
   };
 
   const filteredScholarships = scholarships;
 
+  const hasActiveFilters = Object.values(filters).some(value => 
+    value !== undefined && value !== '' && value !== 0 && (Array.isArray(value) ? value.length > 0 : true)
+  );
+
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6">
       {/* Search Bar */}
-      <div className="relative">
+      <div className="relative mb-6">
         <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
         <input
           type="text"
@@ -106,7 +111,7 @@ const ScholarshipRoute = () => {
       </div>
 
       {/* Filters and Results Count */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -134,28 +139,43 @@ const ScholarshipRoute = () => {
         </div>
       </div>
 
-      {/* Loading State */}
-      {isLoading && scholarships.length === 0 && (
-        <div className="flex items-center justify-center py-12">
-          <div className="flex items-center space-x-2">
-            <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
-            <span className="text-gray-600">Loading scholarships...</span>
+      {/* Main Content Area with Sidebar */}
+      <div className="flex gap-6">
+        {/* Sidebar Filters - Show when filters are active */}
+        {hasActiveFilters && (
+          <div className="flex-shrink-0">
+            <ScholarshipSidebarFilters
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+              filterOptions={filterOptions}
+            />
           </div>
-        </div>
-      )}
+        )}
 
-      {/* No Results */}
-      {!isLoading && scholarships.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-gray-500 mb-2">No scholarships found</div>
-          <div className="text-sm text-gray-400">
-            Try adjusting your search terms or filters
-          </div>
-        </div>
-      )}
+        {/* Main Content */}
+        <div className="flex-1 space-y-6">
+          {/* Loading State */}
+          {isLoading && scholarships.length === 0 && (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex items-center space-x-2">
+                <Loader2 className="w-6 h-6 animate-spin text-purple-600" />
+                <span className="text-gray-600">Loading scholarships...</span>
+              </div>
+            </div>
+          )}
 
-      {/* Scholarship Cards */}
-      <div className="space-y-4">
+          {/* No Results */}
+          {!isLoading && scholarships.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-gray-500 mb-2">No scholarships found</div>
+              <div className="text-sm text-gray-400">
+                Try adjusting your search terms or filters
+              </div>
+            </div>
+          )}
+
+          {/* Scholarship Cards */}
+          <div className="space-y-4">
         {filteredScholarships.map((scholarship) => (
           <div key={scholarship.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
             {/* Header */}
@@ -244,28 +264,30 @@ const ScholarshipRoute = () => {
             </div>
           </div>
         ))}
-      </div>
+          </div>
 
-      {/* Load More */}
-      {filteredScholarships.length > 0 && !isLoading && (
-        <div className="text-center">
-          <Button 
-            variant="outline" 
-            className="px-8"
-            onClick={loadScholarships}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Loading...
-              </>
-            ) : (
-              'Load More Scholarships'
-            )}
-          </Button>
+          {/* Load More */}
+          {filteredScholarships.length > 0 && !isLoading && (
+            <div className="text-center">
+              <Button 
+                variant="outline" 
+                className="px-8"
+                onClick={loadScholarships}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Loading...
+                  </>
+                ) : (
+                  'Load More Scholarships'
+                )}
+              </Button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Filter Modal */}
       <ScholarshipFiltersComponent

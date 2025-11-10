@@ -34,8 +34,34 @@ All data is fetched from the `scholarships_en` collection in Firebase Firestore.
 
 ## Components
 
-- **ScholarshipFiltersComponent**: Modal component for filtering scholarships
+- **ScholarshipFiltersComponent**: Modal component for filtering scholarships with collapsible sections
+- **ScholarshipSidebarFilters**: Sidebar component that displays active filters
 - **ScholarshipRoute**: Main page component with search and display functionality
+
+## Filter Features
+
+The filter system includes:
+
+### Countries
+- Dropdown menu for selecting preferred study destination
+- Includes 15 popular countries: United States, United Kingdom, Canada, Australia, Germany, Netherlands, Sweden, Norway, Denmark, Switzerland, France, Japan, South Korea, Singapore, New Zealand
+- Displays in both modal and sidebar when active
+
+### Fields of Study
+- Dropdown menu for selecting academic discipline
+- Includes: Computer Science, Data Science, Engineering, Business Administration, Economics, Medicine, Law, Psychology, Environmental Science, International Relations
+
+### Scholarship Requirements
+- **Degree Level**: Dropdown to select required degree (Bachelor's, Master's, PhD, Postdoctoral)
+- **Min GPA Required**: Numeric input for minimum GPA (0-4.0 scale)
+- **Min IELTS Required**: Numeric input for minimum IELTS score (0-9.0 scale)
+
+### Additional Filters
+- **Scholarship Type**: Government, University, Private, etc.
+- **Status**: Active, Expired, Upcoming, Closed
+- **Funding Level**: Full Funding, Partial Funding, Tuition Waiver, etc.
+
+All filter sections are collapsible in the modal view for better organization.
 
 ## Usage
 
