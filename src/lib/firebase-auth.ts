@@ -8,13 +8,15 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
 
-import { auth, db } from './firebase';
+import { auth } from './firebase';
 import { LoginInput, RegisterInput } from './auth';
+import { env } from '@/config/env';
 
 // Firebase Auth Hooks
 const googleProvider = new GoogleAuthProvider();
+
+const API_URL = env.API_URL;
 
 export const useFirebaseUser = () => {
   return useQuery({
@@ -41,8 +43,9 @@ export const useFirebaseLogin = () => {
       );
       return userCredential.user;
     },
-    onSuccess: (user) => {
+    onSuccess: async (user) => {
       queryClient.setQueryData(['firebase-user'], user);
+      await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
     },
   });
 };
@@ -52,24 +55,42 @@ export const useFirebaseRegister = () => {
   
   return useMutation({
     mutationFn: async (data: RegisterInput) => {
+      // Step 1: Create Firebase user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         data.email,
         data.password
       );
       
-      // Store additional user info in Firestore
-      await setDoc(doc(db, 'users', userCredential.user.uid), {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        createdAt: new Date().toISOString(),
+      const user = userCredential.user;
+      
+      // Step 2: Get ID token
+      const idToken = await user.getIdToken();
+      
+      // Step 3: Register with backend API
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          display_name: `${data.firstName} ${data.lastName}`,
+          first_name: data.firstName,
+          last_name: data.lastName,
+        }),
       });
       
-      return userCredential.user;
+      if (!response.ok) {
+        throw new Error('Failed to register with backend');
+      }
+      
+      return user;
     },
-    onSuccess: (user) => {
+    onSuccess: async (user) => {
       queryClient.setQueryData(['firebase-user'], user);
+      await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
     },
   });
 };
@@ -79,33 +100,33 @@ export const useGoogleSignIn = () => {
   
   return useMutation({
     mutationFn: async () => {
+      // Step 1: Sign in with Google
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       
-      // Check if user document exists, if not create it
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
+      // Step 2: Get ID token
+      const idToken = await user.getIdToken();
       
-      if (!userDoc.exists()) {
-        // Extract name from displayName
-        const nameParts = user.displayName?.split(' ') || [];
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
-        
-        await setDoc(userDocRef, {
-          firstName,
-          lastName,
-          email: user.email,
-          photoURL: user.photoURL,
-          provider: 'google',
-          createdAt: new Date().toISOString(),
-        });
+      // Step 3: Verify with backend
+      const response = await fetch(`${API_URL}/auth/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id_token: idToken,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to verify with backend');
       }
       
       return user;
     },
-    onSuccess: (user) => {
+    onSuccess: async (user) => {
       queryClient.setQueryData(['firebase-user'], user);
+      await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
     },
   });
 };

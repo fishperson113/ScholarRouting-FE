@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 
 import {
   Dialog,
@@ -21,6 +22,7 @@ type AuthDialogProps = {
 export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }: AuthDialogProps) => {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Reset mode when dialog opens with new defaultMode
   useEffect(() => {
@@ -29,19 +31,19 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }
     }
   }, [isOpen, defaultMode]);
 
-  const handleSuccess = (loginMethod?: 'google' | 'email') => {
-    console.log('Auth success with method:', loginMethod);
-    
-    // Always close the dialog first
+  const handleSuccess = async (loginMethod?: 'google' | 'email') => {
+    // Close the dialog immediately
     onClose();
     
-    if (loginMethod === 'email') {
-      // For email login, navigate to scholarships
-      console.log('Email login success - navigating to scholarships');
-      navigate(paths.app.scholarships.getHref());
-    }
-    // For Google login, we don't navigate - the parent component will handle the UI updates
-};
+    // Invalidate user query to force refetch
+    await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
+    
+    // Navigate to scholarships page
+    navigate(paths.app.scholarships.getHref(), { replace: true });
+    
+    // Call parent's onSuccess if provided
+    onSuccess?.();
+  };
 
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');

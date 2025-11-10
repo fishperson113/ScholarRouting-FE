@@ -179,7 +179,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 className={cn('block px-4 py-2 text-sm text-gray-700 w-full')}
                 onClick={() => {
                   logout.mutate();
-                  navigate(paths.auth.login.getHref());
+                  navigate(paths.home.getHref());
                 }}
               >
                 Sign Out
