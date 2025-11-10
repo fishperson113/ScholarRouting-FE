@@ -15,9 +15,10 @@ type AuthDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   defaultMode?: 'login' | 'register';
+  onSuccess?: () => void;
 };
 
-export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login' }: AuthDialogProps) => {
+export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }: AuthDialogProps) => {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
   const navigate = useNavigate();
 
@@ -28,10 +29,19 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login' }: AuthDialo
     }
   }, [isOpen, defaultMode]);
 
-  const handleSuccess = () => {
+  const handleSuccess = (loginMethod?: 'google' | 'email') => {
+    console.log('Auth success with method:', loginMethod);
+    
+    // Always close the dialog first
     onClose();
-    navigate(paths.app.dashboard.getHref());
-  };
+    
+    if (loginMethod === 'email') {
+      // For email login, navigate to scholarships
+      console.log('Email login success - navigating to scholarships');
+      navigate(paths.app.scholarships.getHref());
+    }
+    // For Google login, we don't navigate - the parent component will handle the UI updates
+};
 
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');

@@ -1,4 +1,4 @@
-import { ArrowRight, Globe, TrendingUp, Users, CheckCircle } from 'lucide-react';
+import { Globe, TrendingUp, Users, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
 
@@ -17,7 +17,7 @@ const LandingRoute = () => {
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      navigate(paths.app.dashboard.getHref());
+      navigate(paths.app.scholarships.getHref());
     } else {
       setIsAuthDialogOpen(true);
     }
@@ -69,7 +69,7 @@ const LandingRoute = () => {
                 onClick={handleGetStarted}
                 className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-6 text-lg"
               >
-                Get Started
+                {isAuthenticated ? 'Browse Scholarships' : 'Get Started'}
               </Button>
               <Button 
                 size="lg" 

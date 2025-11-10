@@ -23,7 +23,7 @@ const RegisterRoute = () => {
       <RegisterForm
         onSuccess={() => {
           navigate(
-            `${redirectTo ? `${redirectTo}` : paths.app.dashboard.getHref()}`,
+            `${redirectTo ? `${redirectTo}` : paths.app.scholarships.getHref()}`,
             {
               replace: true,
             },

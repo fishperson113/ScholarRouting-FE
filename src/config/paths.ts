@@ -22,13 +22,9 @@ export const paths = {
       path: '/app',
       getHref: () => '/app',
     },
-    dashboard: {
+    scholarships: {
       path: '',
       getHref: () => '/app',
-    },
-    scholarships: {
-      path: 'scholarships',
-      getHref: () => '/app/scholarships',
     },
     applications: {
       path: 'applications',
