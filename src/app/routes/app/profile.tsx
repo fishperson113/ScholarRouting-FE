@@ -1,4 +1,3 @@
-import { ContentLayout } from '@/components/layouts';
 import { UpdateProfile } from '@/features/users/components/update-profile';
 import { useUser } from '@/lib/auth';
 
@@ -21,7 +20,8 @@ const ProfileRoute = () => {
   if (!user.data) return null;
 
   return (
-    <ContentLayout title="Profile">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Profile</h1>
       <div className="overflow-hidden bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:px-6">
           <div className="flex justify-between">
@@ -36,15 +36,15 @@ const ProfileRoute = () => {
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
           <dl className="sm:divide-y sm:divide-gray-200">
-            <Entry label="First Name" value={user.data.firstName} />
-            <Entry label="Last Name" value={user.data.lastName} />
-            <Entry label="Email Address" value={user.data.email} />
-            <Entry label="Role" value={user.data.role} />
-            <Entry label="Bio" value={user.data.bio} />
+            <Entry label="First Name" value={user.data.displayName?.split(' ')[0] || 'N/A'} />
+            <Entry label="Last Name" value={user.data.displayName?.split(' ').slice(1).join(' ') || 'N/A'} />
+            <Entry label="Email Address" value={user.data.email || 'N/A'} />
+            <Entry label="Role" value="User" />
+            <Entry label="Bio" value="N/A" />
           </dl>
         </div>
       </div>
-    </ContentLayout>
+    </div>
   );
 };
 

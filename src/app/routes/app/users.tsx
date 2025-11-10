@@ -1,6 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
 
-import { ContentLayout } from '@/components/layouts';
 import { getUsersQueryOptions } from '@/features/users/api/get-users';
 import { UsersList } from '@/features/users/components/users-list';
 import { Authorization, ROLES } from '@/lib/authorization';
@@ -16,14 +15,15 @@ export const clientLoader = (queryClient: QueryClient) => async () => {
 
 const UsersRoute = () => {
   return (
-    <ContentLayout title="Users">
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Users</h1>
       <Authorization
         forbiddenFallback={<div>Only admin can view this.</div>}
         allowedRoles={[ROLES.ADMIN]}
       >
         <UsersList />
       </Authorization>
-    </ContentLayout>
+    </div>
   );
 };
 
