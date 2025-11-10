@@ -2,44 +2,22 @@ import { useSearchParams } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
-import { paths } from '@/config/paths';
-import { registerInputSchema, useGoogleLoginWithAPI } from '@/lib/auth';
-import { useFirebaseRegister } from '@/lib/firebase-auth';
+import { registerInputSchema } from '@/lib/auth';
+import { useAuth } from '@/hooks/use-auth';
 
 type RegisterFormProps = {
-  onSuccess: () => void;
+  onSuccess?: (method?: 'google' | 'email') => void;
 };
 
-export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
+export const RegisterForm = ({ onSuccess }: RegisterFormProps = {}) => {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
-  
-  const firebaseRegister = useFirebaseRegister();
-  const googleSignIn = useGoogleLoginWithAPI();
-
-  const handleRegister = async (values: any) => {
-    try {
-      await firebaseRegister.mutateAsync(values);
-      onSuccess();
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      // Error will be shown via notification or you can handle it here
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await googleSignIn.mutateAsync();
-      onSuccess();
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-    }
-  };
+  const { register: registerUser, loginWithGoogle, isLoading } = useAuth({ redirectTo, onSuccess });
 
   return (
     <div>
       <Form
-        onSubmit={handleRegister}
+        onSubmit={registerUser}
         schema={registerInputSchema}
       >
         {({ register, formState }) => (
@@ -72,8 +50,8 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
               <Button
                 type="submit"
                 className="w-full"
-                isLoading={firebaseRegister.isPending}
-                disabled={firebaseRegister.isPending}
+                isLoading={isLoading}
+                disabled={isLoading}
               >
                 Register
               </Button>
@@ -97,9 +75,9 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
         type="button"
         variant="outline"
         className="w-full"
-        onClick={handleGoogleSignIn}
-        isLoading={googleSignIn.isPending}
-        disabled={googleSignIn.isPending}
+        onClick={loginWithGoogle}
+        isLoading={isLoading}
+        disabled={isLoading}
         icon={
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

@@ -2,48 +2,22 @@ import { useSearchParams } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
-import { paths } from '@/config/paths';
-import { loginInputSchema, useGoogleLoginWithAPI } from '@/lib/auth';
-import { useFirebaseLogin } from '@/lib/firebase-auth';
+import { loginInputSchema } from '@/lib/auth';
+import { useAuth } from '@/hooks/use-auth';
 
 type LoginFormProps = {
-  onSuccess: () => void;
+  onSuccess?: (method?: 'google' | 'email') => void;
 };
 
-export const LoginForm = ({ onSuccess }: LoginFormProps) => {
+export const LoginForm = ({ onSuccess }: LoginFormProps = {}) => {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
-  
-  const firebaseLogin = useFirebaseLogin();
-  const googleSignInWithAPI = useGoogleLoginWithAPI();
-
-  const handleLogin = async (values: any) => {
-    try {
-      await firebaseLogin.mutateAsync(values);
-      onSuccess();
-    } catch (error: any) {
-      console.error('Login error:', error);
-      // Error will be shown via notification or you can handle it here
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      console.log('Starting Google sign-in...');
-      const result = await googleSignInWithAPI.mutateAsync();
-      console.log('Google sign-in successful:', result);
-      onSuccess();
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      console.error('Error details:', error.message);
-      // You can add error notification here
-    }
-  };
+  const { login, loginWithGoogle, isLoading } = useAuth({ redirectTo, onSuccess });
 
   return (
     <div>
       <Form
-        onSubmit={handleLogin}
+        onSubmit={login}
         schema={loginInputSchema}
       >
         {({ register, formState }) => (
@@ -64,8 +38,8 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
               <Button
                 type="submit"
                 className="w-full"
-                isLoading={firebaseLogin.isPending}
-                disabled={firebaseLogin.isPending}
+                isLoading={isLoading}
+                disabled={isLoading}
               >
                 Log in
               </Button>
@@ -89,9 +63,9 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         type="button"
         variant="outline"
         className="w-full"
-        onClick={handleGoogleSignIn}
-        isLoading={googleSignInWithAPI.isPending}
-        disabled={googleSignInWithAPI.isPending}
+        onClick={loginWithGoogle}
+        isLoading={isLoading}
+        disabled={isLoading}
         icon={
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

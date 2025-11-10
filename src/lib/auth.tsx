@@ -92,11 +92,10 @@ export const useGoogleLoginWithAPI = () => {
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useUser();
-  const location = useLocation();
 
   if (!user.data) {
     return (
-      <Navigate to={paths.auth.login.getHref(location.pathname)} replace />
+      <Navigate to={paths.home.getHref()} replace />
     );
   }
 
