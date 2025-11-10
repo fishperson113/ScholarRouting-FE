@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { doc, getDoc } from 'firebase/firestore';
 
-import { Button } from '@/components/ui/button';
+
 import { paths } from '@/config/paths';
 import { useUser, useLogout } from '@/lib/auth';
 import { db } from '@/lib/firebase';

@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, LogOut, User } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, User, Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -62,6 +62,7 @@ export const LandingNav = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Get user profile data from Firestore
@@ -79,11 +80,15 @@ export const LandingNav = () => {
   const userInitials = getInitials(userData.firstName, userData.lastName, userData.displayName || undefined, userData.email || undefined);
   const displayName = getDisplayName(userData.firstName, userData.lastName, userData.displayName || undefined, userData.email || undefined);
 
-  // Close dropdown when clicking outside
+  // Close dropdown and mobile menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsProfileDropdownOpen(false);
+      }
+      // Close mobile menu when clicking outside
+      if (isMobileMenuOpen && !(event.target as Element).closest('.mobile-menu-container')) {
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -91,7 +96,7 @@ export const LandingNav = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isMobileMenuOpen]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
@@ -109,34 +114,87 @@ export const LandingNav = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link
-              to={paths.app.scholarships.getHref()}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to={paths.app.scholarships.getHref()}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  🔍 Scholarships
+                </Link>
+                <Link
+                  to={paths.app.applications.getHref()}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  📄 My Applications
+                </Link>
+                <Link
+                  to={paths.app.deadlines.getHref()}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  📅 Deadlines
+                </Link>
+                <Link
+                  to={paths.app.profile.getHref()}
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  👤 Profile
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                  }}
+                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                >
+                  🔍 Scholarships
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                  }}
+                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                >
+                  📄 My Applications
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                  }}
+                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                >
+                  📅 Deadlines
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                  }}
+                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+                >
+                  👤 Profile
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-gray-600 hover:text-gray-900 p-2"
             >
-              🔍 Scholarships
-            </Link>
-            <Link
-              to={paths.app.applications.getHref()}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              📄 My Applications
-            </Link>
-            <Link
-              to={paths.app.deadlines.getHref()}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              📅 Deadlines
-            </Link>
-            <Link
-              to={paths.app.profile.getHref()}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              👤 Profile
-            </Link>
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
           </div>
 
           {/* Right side - Auth buttons or User Profile */}
-          <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
                 {/* Notification Bell */}
@@ -226,6 +284,112 @@ export const LandingNav = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-200 mobile-menu-container">
+          <div className="px-4 py-2 space-y-2">
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to={paths.app.scholarships.getHref()}
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  🔍 Scholarships
+                </Link>
+                <Link
+                  to={paths.app.applications.getHref()}
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  📄 My Applications
+                </Link>
+                <Link
+                  to={paths.app.deadlines.getHref()}
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  📅 Deadlines
+                </Link>
+                <Link
+                  to={paths.app.profile.getHref()}
+                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  👤 Profile
+                </Link>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  🔍 Scholarships
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  📄 My Applications
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  📅 Deadlines
+                </button>
+                <button
+                  onClick={() => {
+                    setAuthMode('login');
+                    setIsAuthDialogOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  👤 Profile
+                </button>
+                <div className="border-t border-gray-200 pt-2 mt-2">
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setAuthMode('login');
+                      setIsAuthDialogOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full justify-start text-gray-600 hover:text-gray-900"
+                  >
+                    Sign in
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setAuthMode('register');
+                      setIsAuthDialogOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    Sign up
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Auth Dialog */}
       <AuthDialog
