@@ -3,8 +3,8 @@ import { Link, useSearchParams, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/config/paths';
-import { loginInputSchema } from '@/lib/auth';
-import { useFirebaseLogin, useGoogleSignIn } from '@/lib/firebase-auth';
+import { loginInputSchema, useGoogleLoginWithAPI } from '@/lib/auth';
+import { useFirebaseLogin } from '@/lib/firebase-auth';
 
 type LoginFormProps = {
   onSuccess: () => void;
@@ -16,7 +16,7 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
   const redirectTo = searchParams.get('redirectTo');
   
   const firebaseLogin = useFirebaseLogin();
-  const googleSignIn = useGoogleSignIn();
+  const googleSignInWithAPI = useGoogleLoginWithAPI();
 
   const handleLogin = async (values: any) => {
     try {
@@ -31,11 +31,15 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
   const handleGoogleSignIn = async () => {
     try {
-      await googleSignIn.mutateAsync();
+      console.log('Starting Google sign-in...');
+      const result = await googleSignInWithAPI.mutateAsync();
+      console.log('Google sign-in successful:', result);
       navigate(paths.app.dashboard.getHref());
       onSuccess();
     } catch (error: any) {
       console.error('Google sign-in error:', error);
+      console.error('Error details:', error.message);
+      // You can add error notification here
     }
   };
 
@@ -50,13 +54,13 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
             <Input
               type="email"
               label="Email Address"
-              error={formState.errors['email']}
+              error={formState.errors['email'] as any}
               registration={register('email')}
             />
             <Input
               type="password"
               label="Password"
-              error={formState.errors['password']}
+              error={formState.errors['password'] as any}
               registration={register('password')}
             />
             <div>
@@ -89,8 +93,8 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
         variant="outline"
         className="w-full"
         onClick={handleGoogleSignIn}
-        isLoading={googleSignIn.isPending}
-        disabled={googleSignIn.isPending}
+        isLoading={googleSignInWithAPI.isPending}
+        disabled={googleSignInWithAPI.isPending}
         icon={
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path

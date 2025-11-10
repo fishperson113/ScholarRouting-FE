@@ -1,4 +1,4 @@
-import { Home, PanelLeft, Folder, Users, User2 } from 'lucide-react';
+import { PanelLeft, User2, GraduationCap, FileText, Calendar } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useNavigation } from 'react-router';
 
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { paths } from '@/config/paths';
 import { useLogout } from '@/lib/auth';
-import { ROLES, useAuthorization } from '@/lib/authorization';
+
 import { cn } from '@/utils/cn';
 
 import {
@@ -78,18 +78,13 @@ const Progress = () => {
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const logout = useLogout({
-    onSuccess: () => navigate(paths.auth.login.getHref(location.pathname)),
-  });
-  const { checkAccess } = useAuthorization();
+  const logout = useLogout();
+
   const navigation = [
-    { name: 'Dashboard', to: paths.app.dashboard.getHref(), icon: Home },
-    { name: 'Discussions', to: paths.app.discussions.getHref(), icon: Folder },
-    checkAccess({ allowedRoles: [ROLES.ADMIN] }) && {
-      name: 'Users',
-      to: paths.app.users.getHref(),
-      icon: Users,
-    },
+    { name: 'Scholarships', to: paths.app.scholarships.getHref(), icon: GraduationCap },
+    { name: 'My Applications', to: paths.app.applications.getHref(), icon: FileText },
+    { name: 'Deadlines', to: paths.app.deadlines.getHref(), icon: Calendar },
+    { name: 'Profile', to: paths.app.profile.getHref(), icon: User2 },
   ].filter(Boolean) as SideNavigationItem[];
 
   return (
@@ -103,7 +98,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <NavLink
               key={item.name}
               to={item.to}
-              end={item.name !== 'Discussions'}
+              end
               className={({ isActive }) =>
                 cn(
                   'text-gray-300 hover:bg-gray-700 hover:text-white',
@@ -181,15 +176,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => navigate(paths.app.profile.getHref())}
-                className={cn('block px-4 py-2 text-sm text-gray-700')}
-              >
-                Your Profile
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
                 className={cn('block px-4 py-2 text-sm text-gray-700 w-full')}
-                onClick={() => logout.mutate({})}
+                onClick={() => {
+                  logout.mutate();
+                  navigate(paths.auth.login.getHref());
+                }}
               >
                 Sign Out
               </DropdownMenuItem>

@@ -1,10 +1,15 @@
 import { Bell } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import { Button } from '@/components/ui/button';
 import { paths } from '@/config/paths';
+import { useUser } from '@/lib/auth';
 
 export const LandingNav = () => {
+  const navigate = useNavigate();
+  const user = useUser();
+  const isAuthenticated = !!user.data;
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,23 +52,46 @@ export const LandingNav = () => {
             </Link>
           </div>
 
-          {/* Right side - Notification & Profile */}
+          {/* Right side - Auth buttons or User Profile */}
           <div className="flex items-center space-x-4">
-            {/* Notification Bell */}
-            <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            {isAuthenticated ? (
+              <>
+                {/* Notification Bell */}
+                <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
+                  <Bell className="w-5 h-5" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
 
-            {/* User Profile */}
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">T</span>
-              </div>
-              <span className="hidden md:block text-sm font-medium text-gray-700">
-                Trần Dương Tuấn
-              </span>
-            </div>
+                {/* User Profile */}
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-pink-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">T</span>
+                  </div>
+                  <span className="hidden md:block text-sm font-medium text-gray-700">
+                    Trần Dương Tuấn
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Sign In Button */}
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate(paths.auth.login.getHref())}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  Sign in
+                </Button>
+
+                {/* Sign Up Button */}
+                <Button
+                  onClick={() => navigate(paths.auth.register.getHref())}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  Sign up
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -3,8 +3,8 @@ import { Link, useSearchParams, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Form, Input } from '@/components/ui/form';
 import { paths } from '@/config/paths';
-import { registerInputSchema } from '@/lib/auth';
-import { useFirebaseRegister, useGoogleSignIn } from '@/lib/firebase-auth';
+import { registerInputSchema, useGoogleLoginWithAPI } from '@/lib/auth';
+import { useFirebaseRegister } from '@/lib/firebase-auth';
 
 type RegisterFormProps = {
   onSuccess: () => void;
@@ -16,7 +16,7 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
   const redirectTo = searchParams.get('redirectTo');
   
   const firebaseRegister = useFirebaseRegister();
-  const googleSignIn = useGoogleSignIn();
+  const googleSignIn = useGoogleLoginWithAPI();
 
   const handleRegister = async (values: any) => {
     try {
@@ -50,25 +50,25 @@ export const RegisterForm = ({ onSuccess }: RegisterFormProps) => {
             <Input
               type="text"
               label="First Name"
-              error={formState.errors['firstName']}
+              error={formState.errors['firstName'] as any}
               registration={register('firstName')}
             />
             <Input
               type="text"
               label="Last Name"
-              error={formState.errors['lastName']}
+              error={formState.errors['lastName'] as any}
               registration={register('lastName')}
             />
             <Input
               type="email"
               label="Email Address"
-              error={formState.errors['email']}
+              error={formState.errors['email'] as any}
               registration={register('email')}
             />
             <Input
               type="password"
               label="Password"
-              error={formState.errors['password']}
+              error={formState.errors['password'] as any}
               registration={register('password')}
             />
             <div>
