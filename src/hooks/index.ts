@@ -51,3 +51,11 @@ export type {
   FilterOperator,
   SearchResult,
 } from '@/types/search';
+
+// Export field mapping constants
+export {
+  SCHOLARSHIP_FIELD_MAPPING,
+  getElasticsearchFieldName,
+  type FrontendFilterKey,
+  type ElasticsearchFieldName,
+} from '@/types/field-mapping';

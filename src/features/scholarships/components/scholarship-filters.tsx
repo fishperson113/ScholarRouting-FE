@@ -3,6 +3,15 @@ import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ScholarshipFilters } from '@/types/scholarship';
 
+// Default degree levels
+const defaultDegreeLevels = [
+  "Bachelor's Degree",
+  "Master's Degree",
+  "PhD",
+  "Associate Degree",
+  "Professional Degree"
+];
+
 interface ScholarshipFiltersProps {
   filters: ScholarshipFilters;
   onFiltersChange: (filters: ScholarshipFilters) => void;
@@ -30,10 +39,9 @@ export const ScholarshipFiltersComponent = ({
   const [expandedSections, setExpandedSections] = useState({
     countries: true,
     fieldsOfStudy: true,
-    requirements: true,
+    degreeLevel: true,
     fundingLevel: true,
     type: true,
-    status: true
   });
 
   useEffect(() => {
@@ -184,181 +192,103 @@ export const ScholarshipFiltersComponent = ({
             )}
           </div>
 
-          {/* Scholarship Requirements Section */}
+          {/* Degree Level Section */}
           <div className="border-b pb-4">
             <button
-              onClick={() => toggleSection('requirements')}
+              onClick={() => toggleSection('degreeLevel')}
               className="flex items-center justify-between w-full text-left"
             >
               <div>
-                <h4 className="text-sm font-semibold text-gray-900">Scholarship Requirements</h4>
-                <p className="text-xs text-gray-500 mt-0.5">Filter by minimum conditions to be met</p>
+                <h4 className="text-sm font-semibold text-gray-900">Degree Level</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Filter by required degree level</p>
               </div>
-              {expandedSections.requirements ? (
+              {expandedSections.degreeLevel ? (
                 <ChevronUp className="w-4 h-4 text-gray-500" />
               ) : (
                 <ChevronDown className="w-4 h-4 text-gray-500" />
               )}
             </button>
-            {expandedSections.requirements && (
-              <div className="mt-3 space-y-4">
-                {/* Degree Level */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-2">
-                    Degree Level
-                  </label>
-                  <select
-                    value={localFilters.degreeLevel || ''}
-                    onChange={(e) => handleFilterChange('degreeLevel', e.target.value || undefined)}
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">Select Degree Level</option>
-                    {defaultDegreeLevels.map(level => (
-                      <option key={level} value={level}>{level}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Min GPA Required */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                      Min GPA Required
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="4.0"
-                      placeholder="3.2"
-                      value={localFilters.minGPA || ''}
-                      onChange={(e) => handleFilterChange('minGPA', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  {/* Min IELTS Required */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-2">
-                      Min IELTS Required
-                    </label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0"
-                      max="9.0"
-                      placeholder="6.5"
-                      value={localFilters.minIELTS || ''}
-                      onChange={(e) => handleFilterChange('minIELTS', e.target.value ? parseFloat(e.target.value) : undefined)}
-                      className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+            {expandedSections.degreeLevel && (
+              <div className="mt-3">
+                <select
+                  value={localFilters.degreeLevel || ''}
+                  onChange={(e) => handleFilterChange('degreeLevel', e.target.value || undefined)}
+                  className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">All Degree Levels</option>
+                  {defaultDegreeLevels.map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
               </div>
             )}
           </div>
 
-          {/* Type Filter */}
-          {filterOptions?.types && filterOptions.types.length > 0 && (
-            <div className="border-b pb-4">
-              <button
-                onClick={() => toggleSection('type')}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Scholarship Type</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Filter by scholarship provider type</p>
-                </div>
-                {expandedSections.type ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-              {expandedSections.type && (
-                <div className="mt-3">
-                  <select
-                    value={localFilters.type || ''}
-                    onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">All Types</option>
-                    {filterOptions.types.map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
+          {/* Scholarship Type Section */}
+          <div className="border-b pb-4">
+            <button
+              onClick={() => toggleSection('type')}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Scholarship Type</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Filter by scholarship provider type</p>
+              </div>
+              {expandedSections.type ? (
+                <ChevronUp className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               )}
-            </div>
-          )}
-
-          {/* Status Filter */}
-          {filterOptions?.statuses && filterOptions.statuses.length > 0 && (
-            <div className="border-b pb-4">
-              <button
-                onClick={() => toggleSection('status')}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Status</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Filter by application status</p>
-                </div>
-                {expandedSections.status ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-              {expandedSections.status && (
-                <div className="mt-3">
-                  <select
-                    value={localFilters.status || ''}
-                    onChange={(e) => handleFilterChange('status', e.target.value || undefined)}
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">All Statuses</option>
-                    {filterOptions.statuses.map(status => (
-                      <option key={status} value={status}>{status}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
+            </button>
+            {expandedSections.type && (
+              <div className="mt-3">
+                <select
+                  value={localFilters.type || ''}
+                  onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
+                  className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">All Types</option>
+                  <option value="Government">Government</option>
+                  <option value="University">University</option>
+                  <option value="Private">Private</option>
+                  <option value="Organization">Organization</option>
+                </select>
+              </div>
+            )}
+          </div>
 
           {/* Funding Level Filter */}
-          {filterOptions?.fundingLevels && filterOptions.fundingLevels.length > 0 && (
-            <div className="pb-4">
-              <button
-                onClick={() => toggleSection('fundingLevel')}
-                className="flex items-center justify-between w-full text-left"
-              >
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Funding Level</h4>
-                  <p className="text-xs text-gray-500 mt-0.5">Filter by scholarship funding amount</p>
-                </div>
-                {expandedSections.fundingLevel ? (
-                  <ChevronUp className="w-4 h-4 text-gray-500" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
-                )}
-              </button>
-              {expandedSections.fundingLevel && (
-                <div className="mt-3">
-                  <select
-                    value={localFilters.fundingLevel || ''}
-                    onChange={(e) => handleFilterChange('fundingLevel', e.target.value || undefined)}
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">All Funding Levels</option>
-                    {filterOptions.fundingLevels.map(level => (
-                      <option key={level} value={level}>{level}</option>
-                    ))}
-                  </select>
-                </div>
+          <div className="pb-4">
+            <button
+              onClick={() => toggleSection('fundingLevel')}
+              className="flex items-center justify-between w-full text-left"
+            >
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900">Funding Level</h4>
+                <p className="text-xs text-gray-500 mt-0.5">Filter by scholarship funding coverage</p>
+              </div>
+              {expandedSections.fundingLevel ? (
+                <ChevronUp className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
               )}
-            </div>
-          )}
+            </button>
+            {expandedSections.fundingLevel && (
+              <div className="mt-3">
+                <select
+                  value={localFilters.fundingLevel || ''}
+                  onChange={(e) => handleFilterChange('fundingLevel', e.target.value || undefined)}
+                  className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="">All Funding Levels</option>
+                  <option value="Full scholarship">Full Scholarship</option>
+                  <option value="Tuition Waiver">Tuition Waiver</option>
+                  <option value="Stipend">Stipend</option>
+                  <option value="Partial">Partial Funding</option>
+                </select>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}

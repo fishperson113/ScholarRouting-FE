@@ -54,10 +54,12 @@ export const ScholarshipSidebarFilters = ({
   ];
 
   // Default degree levels
-  const defaultDegreeLevels = filterOptions?.degreeLevels || [
-    "Bachelor's degree",
-    "Master's degree",
-    "PhD"
+  const defaultDegreeLevels = [
+    "Bachelor's Degree",
+    "Master's Degree",
+    "PhD",
+    "Associate Degree",
+    "Professional Degree"
   ];
 
   return (
@@ -67,68 +69,10 @@ export const ScholarshipSidebarFilters = ({
         <h3 className="text-base font-semibold text-gray-900">Filters</h3>
       </div>
 
-      {/* Scholarship Requirements */}
-      <div>
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Scholarship Requirements</h4>
-        <p className="text-xs text-gray-500 mb-3">Filter by minimum conditions to be met</p>
-        
-        <div className="space-y-3">
-          {/* Degree Level */}
-          <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Degree Level
-            </label>
-            <select
-              value={filters.degreeLevel || ''}
-              onChange={(e) => handleFilterChange('degreeLevel', e.target.value || undefined)}
-              className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="">Select Degree Level</option>
-              {defaultDegreeLevels.map(level => (
-                <option key={level} value={level}>{level}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Min GPA and IELTS */}
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Min GPA Required
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="4.0"
-                placeholder="3.2"
-                value={filters.minGPA || ''}
-                onChange={(e) => handleFilterChange('minGPA', e.target.value ? parseFloat(e.target.value) : undefined)}
-                className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                Min IELTS Required
-              </label>
-              <input
-                type="number"
-                step="0.5"
-                min="0"
-                max="9.0"
-                placeholder="6.5"
-                value={filters.minIELTS || ''}
-                onChange={(e) => handleFilterChange('minIELTS', e.target.value ? parseFloat(e.target.value) : undefined)}
-                className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Countries */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-900 mb-2">Countries</h4>
+        <h4 className="text-sm font-semibold text-gray-900 mb-2">Country</h4>
+        <p className="text-xs text-gray-500 mb-2">Filter by destination country</p>
         <select
           value={filters.country || ''}
           onChange={(e) => handleFilterChange('country', e.target.value || undefined)}
@@ -143,8 +87,8 @@ export const ScholarshipSidebarFilters = ({
 
       {/* Fields of Study */}
       <div>
-        <h4 className="text-sm font-semibold text-gray-900 mb-2">Fields of Study</h4>
-        <p className="text-xs text-gray-500 mb-2">Filter by academic disciplines</p>
+        <h4 className="text-sm font-semibold text-gray-900 mb-2">Field of Study</h4>
+        <p className="text-xs text-gray-500 mb-2">Filter by academic discipline</p>
         <select
           value={filters.fieldOfStudy || ''}
           onChange={(e) => handleFilterChange('fieldOfStudy', e.target.value || undefined)}
@@ -154,6 +98,56 @@ export const ScholarshipSidebarFilters = ({
           {defaultFieldsOfStudy.map(field => (
             <option key={field} value={field}>{field}</option>
           ))}
+        </select>
+      </div>
+
+      {/* Degree Level */}
+      <div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-2">Degree Level</h4>
+        <p className="text-xs text-gray-500 mb-2">Filter by required degree level</p>
+        <select
+          value={filters.degreeLevel || ''}
+          onChange={(e) => handleFilterChange('degreeLevel', e.target.value || undefined)}
+          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <option value="">All Degree Levels</option>
+          {defaultDegreeLevels.map(level => (
+            <option key={level} value={level}>{level}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Scholarship Type */}
+      <div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-2">Scholarship Type</h4>
+        <p className="text-xs text-gray-500 mb-2">Filter by provider type</p>
+        <select
+          value={filters.type || ''}
+          onChange={(e) => handleFilterChange('type', e.target.value || undefined)}
+          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <option value="">All Types</option>
+          <option value="Government">Government</option>
+          <option value="University">University</option>
+          <option value="Private">Private</option>
+          <option value="Organization">Organization</option>
+        </select>
+      </div>
+
+      {/* Funding Level */}
+      <div>
+        <h4 className="text-sm font-semibold text-gray-900 mb-2">Funding Level</h4>
+        <p className="text-xs text-gray-500 mb-2">Filter by funding coverage</p>
+        <select
+          value={filters.fundingLevel || ''}
+          onChange={(e) => handleFilterChange('fundingLevel', e.target.value || undefined)}
+          className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        >
+          <option value="">All Funding Levels</option>
+          <option value="Full scholarship">Full Scholarship</option>
+          <option value="Tuition Waiver">Tuition Waiver</option>
+          <option value="Stipend">Stipend</option>
+          <option value="Partial">Partial Funding</option>
         </select>
       </div>
     </div>

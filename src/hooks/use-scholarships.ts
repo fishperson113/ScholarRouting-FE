@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useToast } from './use-toast';
 import { useScholarshipFilter } from '@/lib/search-api';
 import { env } from '@/config/env';
+import { SCHOLARSHIP_FIELD_MAPPING, getElasticsearchFieldName } from '@/types/field-mapping';
 import type { ScholarshipFilters } from '@/types/scholarship';
 
 const API_URL = env.API_URL;
@@ -58,22 +59,11 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
       } 
       // Use FILTER endpoint when there are filters (exact match)
       else {
-        // Map frontend filter names to Elasticsearch field names
-        const fieldMapping: Record<string, string> = {
-          country: 'Country',
-          type: 'Scholarship_Type',
-          fundingLevel: 'Funding_Level',
-          fieldOfStudy: 'Eligible_Field_Group',
-          degreeLevel: 'Required_Degree',
-          minGPA: 'Min_Gpa',
-          minIELTS: 'Language_Certificate',
-        };
-        
         // Build filter items from filters only
         const filterItems = Object.entries(filters)
           .filter(([_, value]) => value !== undefined && value !== '' && value !== 0)
           .map(([field, value]) => ({
-            field: fieldMapping[field] || field, // Use mapped field name or original
+            field: getElasticsearchFieldName(field), // Use type-safe field mapping
             values: Array.isArray(value) ? value : [String(value)],
             operator: 'OR' as const,
           }));
