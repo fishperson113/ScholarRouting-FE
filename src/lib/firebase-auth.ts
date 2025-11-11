@@ -55,19 +55,7 @@ export const useFirebaseRegister = () => {
   
   return useMutation({
     mutationFn: async (data: RegisterInput) => {
-      // Step 1: Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        data.email,
-        data.password
-      );
-      
-      const user = userCredential.user;
-      
-      // Step 2: Get ID token
-      const idToken = await user.getIdToken();
-      
-      // Step 3: Register with backend API
+      // Register with backend API - backend will handle Firebase user creation
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
@@ -83,10 +71,18 @@ export const useFirebaseRegister = () => {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to register with backend');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to register');
       }
+
+      // After backend creates Firebase user, sign in to get the user object
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
       
-      return user;
+      return userCredential.user;
     },
     onSuccess: async (user) => {
       queryClient.setQueryData(['firebase-user'], user);
