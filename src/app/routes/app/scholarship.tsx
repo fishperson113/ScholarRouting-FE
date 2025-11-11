@@ -17,9 +17,10 @@ const ScholarshipRoute = () => {
     searchQuery,
     filters,
     total,
+    hasMore,
     setSearch,
     updateFilters,
-    refresh,
+    loadMore,
   } = useScholarships();
 
   const { scholarships, handleSave, handleViewDetails } = useScholarshipCard(rawScholarships);
@@ -132,23 +133,32 @@ const ScholarshipRoute = () => {
           </div>
 
           {/* Load More */}
-          {scholarships.length > 0 && !isLoading && (
+          {scholarships.length > 0 && hasMore && (
             <div className="text-center">
               <Button 
                 variant="outline" 
                 className="px-8"
-                onClick={refresh}
+                onClick={loadMore}
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Loading...
+                    Loading More...
                   </>
                 ) : (
-                  'Load More Scholarships'
+                  `Load More (${scholarships.length} of ${total})`
                 )}
               </Button>
+            </div>
+          )}
+          
+          {/* All loaded message */}
+          {scholarships.length > 0 && !hasMore && (
+            <div className="text-center py-4">
+              <p className="text-gray-500 text-sm">
+                All {total} scholarships loaded
+              </p>
             </div>
           )}
         </div>

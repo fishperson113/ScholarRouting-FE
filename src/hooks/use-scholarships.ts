@@ -18,15 +18,26 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
   const [scholarships, setScholarships] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
   const filterMutation = useScholarshipFilter();
 
-  // Load scholarships whenever filters or search changes
+  // Reset and load scholarships when filters or search changes
   useEffect(() => {
-    loadScholarships();
+    setOffset(0);
+    setScholarships([]);
+    loadScholarships(0, false);
   }, [filters, searchQuery]);
 
-  const loadScholarships = async () => {
+  // Reset and load scholarships when filters or search changes
+  useEffect(() => {
+    setOffset(0);
+    setScholarships([]);
+    loadScholarships(0, false);
+  }, [filters, searchQuery]);
+
+  const loadScholarships = async (currentOffset: number = offset, append: boolean = false) => {
     setIsLoading(true);
     try {
       // Build filter items from both search query and filters
@@ -56,6 +67,7 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
         collection,
         filters: filterItems,
         size: initialPageSize,
+        offset: currentOffset,
       });
       
       console.log('API Response:', result);
@@ -67,8 +79,19 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
       
       console.log('Extracted items:', items);
       
-      setScholarships(items);
-      setTotal(resultData?.total || items.length);
+      // Either append to existing scholarships or replace them
+      if (append) {
+        setScholarships(prev => [...prev, ...items]);
+      } else {
+        setScholarships(items);
+      }
+      
+      setTotal(resultData?.total || 0);
+      
+      // Check if there are more items to load
+      const newTotalLoaded = append ? scholarships.length + items.length : items.length;
+      setHasMore(newTotalLoaded < (resultData?.total || 0));
+      
     } catch (err) {
       const error = err as Error;
       console.error('Error loading scholarships:', error);
@@ -77,8 +100,11 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
         message: error.message || 'Failed to load scholarships. Please try again.',
       });
       onError?.(error);
-      setScholarships([]);
-      setTotal(0);
+      
+      if (!append) {
+        setScholarships([]);
+        setTotal(0);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -100,9 +126,20 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
     setSearchQuery('');
   };
 
-  // Refresh scholarships
+  // Load more scholarships (pagination)
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      const newOffset = offset + initialPageSize;
+      setOffset(newOffset);
+      loadScholarships(newOffset, true);
+    }
+  };
+
+  // Refresh scholarships (reset to first page)
   const refresh = () => {
-    loadScholarships();
+    setOffset(0);
+    setScholarships([]);
+    loadScholarships(0, false);
   };
 
   return {
@@ -111,9 +148,11 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
     searchQuery,
     filters,
     total,
+    hasMore,
     setSearch,
     updateFilters,
     clearFilters,
+    loadMore,
     refresh,
   };
 };

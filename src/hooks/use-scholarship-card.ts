@@ -73,15 +73,8 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
         // Extract type
         const type = scholarship.Scholarship_Type || scholarship.type || scholarship.scholarship_type;
         
-        // Build tags from various fields
+        // Build tags from various fields (but NOT from Funding_Level)
         const tags: string[] = [];
-        if (scholarship.Funding_Level) {
-          // Split funding level by comma and add as tags
-          scholarship.Funding_Level.split(',').forEach((level: string) => {
-            const trimmed = level.trim();
-            if (trimmed) tags.push(trimmed);
-          });
-        }
         if (scholarship.For_Vietnamese) {
           tags.push('For Vietnamese');
         }
@@ -92,13 +85,13 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
         // Extract description
         const description = scholarship.Scholarship_Info || scholarship.description || '';
         
-        // Extract amount/funding
-        const fundingDetails = scholarship.Funding_Details || scholarship.amount || scholarship.funding_level;
+        // Extract amount/funding - prioritize Funding_Level over Funding_Details
+        const fundingInfo = scholarship.Funding_Level || scholarship.Funding_Details || scholarship.amount || scholarship.funding_level;
         // Truncate if too long
-        const amount = fundingDetails 
-          ? fundingDetails.length > 80 
-            ? fundingDetails.substring(0, 77) + '...' 
-            : fundingDetails
+        const amount = fundingInfo 
+          ? fundingInfo.length > 80 
+            ? fundingInfo.substring(0, 77) + '...' 
+            : fundingInfo
           : undefined;
         
         // Format deadline
