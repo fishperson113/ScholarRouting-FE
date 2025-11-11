@@ -18,11 +18,11 @@ export type Meta = {
 };
 
 export type User = Entity<{
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
-  role: 'ADMIN' | 'USER';
-  bio: string;
+  role?: 'ADMIN' | 'USER';
+  bio?: string;
 }>;
 
 export type AuthResponse = {

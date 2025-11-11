@@ -18,13 +18,22 @@ const googleProvider = new GoogleAuthProvider();
 
 const API_URL = env.API_URL;
 
+// Extended Firebase User type with custom properties
+export type ExtendedFirebaseUser = FirebaseUser & {
+  firstName?: string;
+  lastName?: string;
+  role?: 'ADMIN' | 'USER';
+  bio?: string;
+  id?: string;
+};
+
 export const useFirebaseUser = () => {
   return useQuery({
     queryKey: ['firebase-user'],
-    queryFn: () => new Promise<FirebaseUser | null>((resolve) => {
+    queryFn: () => new Promise<ExtendedFirebaseUser | null>((resolve) => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         unsubscribe();
-        resolve(user);
+        resolve(user as ExtendedFirebaseUser | null);
       });
     }),
     staleTime: Infinity,
