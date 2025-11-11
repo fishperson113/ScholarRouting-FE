@@ -17,7 +17,7 @@ export const ScholarshipGrid = () => {
     hasMore,
     loadMore,
   } = useScholarships({
-    collection: 'scholarships_en',
+    collection: 'scholarships_229',
     initialPageSize: 20,
   });
 
