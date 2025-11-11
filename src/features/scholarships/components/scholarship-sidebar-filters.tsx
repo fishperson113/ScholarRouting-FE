@@ -45,12 +45,23 @@ export const ScholarshipSidebarFilters = ({
 
   // Default field of study options
   const defaultFieldsOfStudy = filterOptions?.fieldsOfStudy || [
-    'Computer Science',
-    'Data Science',
-    'Engineering',
-    'Business Administration',
-    'Economics',
-    'Medicine'
+    'Education & Training',
+    'Arts, Design & Media',
+    'Humanities & Social Sciences',
+    'Economics & Business',
+    'Law & Public Policy',
+    'Natural Sciences',
+    'IT & Data Science',
+    'Engineering & Technology',
+    'Construction & Planning',
+    'Agriculture & Environment',
+    'Healthcare & Medicine',
+    'Social Services & Care',
+    'Personal Services & Tourism',
+    'Security & Defense',
+    'Library & Information Management',
+    'Transportation & Logistics',
+    'All fields'
   ];
 
   // Default degree levels
