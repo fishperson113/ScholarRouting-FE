@@ -1,31 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { env } from '@/config/env';
 import { auth } from './firebase';
+import { ScholarshipInterest, ScholarshipApplication } from '@/types/scholarship';
 
 const API_URL = env.API_URL;
-
-// Types for Scholarship Interests
-export type ScholarshipInterest = {
-  scholarship_id: string;
-  scholarship_name?: string;
-  added_date?: string;
-  notes?: string;
-  priority?: 'high' | 'medium' | 'low';
-  status?: 'interested' | 'researching' | 'not_interested';
-  [key: string]: any;
-};
-
-// Types for Scholarship Applications
-export type ScholarshipApplication = {
-  scholarship_id: string;
-  scholarship_name?: string;
-  application_date?: string;
-  deadline?: string;
-  status?: 'draft' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
-  documents_submitted?: string[];
-  notes?: string;
-  [key: string]: any;
-};
 
 // ==================== INTERESTS ====================
 

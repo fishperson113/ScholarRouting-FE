@@ -6,7 +6,6 @@ export { useToast } from './use-toast';
 
 // User profile hooks
 export { useUserProfile, useUpdateProfile } from '@/lib/user-api';
-export type { UserProfile } from '@/lib/user-api';
 
 // Scholarship interests & applications
 export {
@@ -19,7 +18,6 @@ export {
   useUpdateScholarshipApplication,
   useDeleteScholarshipApplication,
 } from '@/lib/scholarship-api';
-export type { ScholarshipInterest, ScholarshipApplication } from '@/lib/scholarship-api';
 
 // Search & Filter hooks
 export {
@@ -27,8 +25,24 @@ export {
   useScholarshipFilter,
   useSyncFirestoreToES,
 } from '@/lib/search-api';
-export type { FilterItem, FilterOperator, SearchResult } from '@/lib/search-api';
 
 // Profile matching hooks
 export { useMatchScholarshipsByProfile } from '@/lib/matching-api';
-export type { MatchedScholarship, MatchResult } from '@/lib/matching-api';
+
+// Export types from centralized location
+export type {
+  UserProfile,
+} from '@/types/user';
+
+export type {
+  ScholarshipInterest,
+  ScholarshipApplication,
+  MatchedScholarship,
+  MatchResult,
+} from '@/types/scholarship';
+
+export type {
+  FilterItem,
+  FilterOperator,
+  SearchResult,
+} from '@/types/search';

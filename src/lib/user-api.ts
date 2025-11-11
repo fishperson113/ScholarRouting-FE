@@ -1,20 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { env } from '@/config/env';
 import { auth } from './firebase';
+import { UserProfile } from '@/types/user';
 
 const API_URL = env.API_URL;
-
-// Types
-export type UserProfile = {
-  uid: string;
-  email: string;
-  display_name?: string;
-  first_name?: string;
-  last_name?: string;
-  photo_url?: string;
-  created_at?: string;
-  [key: string]: any;
-};
 
 // Get current user's ID token
 const getIdToken = async () => {

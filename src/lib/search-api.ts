@@ -1,22 +1,8 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { env } from '@/config/env';
+import { FilterOperator, FilterItem, SearchResult } from '@/types/search';
 
 const API_URL = env.API_URL;
-
-// Types
-export type FilterOperator = 'AND' | 'OR';
-
-export type FilterItem = {
-  field: string;
-  values: string[];
-  operator: FilterOperator;
-};
-
-export type SearchResult = {
-  total: number;
-  hits: any[];
-  took: number;
-};
 
 // ==================== SEARCH ====================
 
