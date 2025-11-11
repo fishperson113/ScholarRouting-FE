@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useToast } from './use-toast';
 import { useScholarshipFilter } from '@/lib/search-api';
+import { env } from '@/config/env';
 import type { ScholarshipFilters } from '@/types/scholarship';
+
+const API_URL = env.API_URL;
 
 interface UseScholarshipsOptions {
   collection?: string;
@@ -30,47 +33,60 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
     loadScholarships(0, false);
   }, [filters, searchQuery]);
 
-  // Reset and load scholarships when filters or search changes
-  useEffect(() => {
-    setOffset(0);
-    setScholarships([]);
-    loadScholarships(0, false);
-  }, [filters, searchQuery]);
-
   const loadScholarships = async (currentOffset: number = offset, append: boolean = false) => {
     setIsLoading(true);
     try {
-      // Build filter items from both search query and filters
-      const filterItems = [];
+      let result: any;
       
-      // Add search query as a filter if present
+      // Use SEARCH endpoint when there's a search query (full-text search)
       if (searchQuery.trim()) {
-        filterItems.push({
-          field: 'Scholarship_Name',
-          values: [searchQuery.trim()],
-          operator: 'OR' as const,
+        const params = new URLSearchParams({
+          q: searchQuery.trim(),
+          collection,
+          size: String(initialPageSize),
+          offset: String(currentOffset),
         });
-      }
-      
-      // Add other filters
-      Object.entries(filters).forEach(([field, value]) => {
-        if (value !== undefined && value !== '' && value !== 0) {
-          filterItems.push({
-            field,
+        
+        const response = await fetch(`${API_URL}/es/search?${params}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to search scholarships');
+        }
+        
+        result = await response.json();
+        console.log('Search API Response:', result);
+      } 
+      // Use FILTER endpoint when there are filters (exact match)
+      else {
+        // Map frontend filter names to Elasticsearch field names
+        const fieldMapping: Record<string, string> = {
+          country: 'Country',
+          type: 'Scholarship_Type',
+          fundingLevel: 'Funding_Level',
+          fieldOfStudy: 'Eligible_Field_Group',
+          degreeLevel: 'Required_Degree',
+          minGPA: 'Min_Gpa',
+          minIELTS: 'Language_Certificate',
+        };
+        
+        // Build filter items from filters only
+        const filterItems = Object.entries(filters)
+          .filter(([_, value]) => value !== undefined && value !== '' && value !== 0)
+          .map(([field, value]) => ({
+            field: fieldMapping[field] || field, // Use mapped field name or original
             values: Array.isArray(value) ? value : [String(value)],
             operator: 'OR' as const,
-          });
-        }
-      });
+          }));
 
-      const result = await filterMutation.mutateAsync({
-        collection,
-        filters: filterItems,
-        size: initialPageSize,
-        offset: currentOffset,
-      });
-      
-      console.log('API Response:', result);
+        result = await filterMutation.mutateAsync({
+          collection,
+          filters: filterItems,
+          size: initialPageSize,
+          offset: currentOffset,
+        });
+        
+        console.log('Filter API Response:', result);
+      }
       
       // Handle the response - the API returns { total, hits, took }
       // Each hit might have different structures, so we normalize it
