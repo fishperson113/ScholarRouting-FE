@@ -6,6 +6,8 @@ import {
   useGoogleSignIn 
 } from '@/lib/firebase-auth';
 import { LoginInput, RegisterInput } from '@/lib/auth';
+import { useToast } from './use-toast';
+import { parseFirebaseAuthError } from '@/utils/firebase-errors';
 
 type UseAuthOptions = {
   redirectTo?: string | null;
@@ -17,6 +19,7 @@ export const useAuth = (options?: UseAuthOptions) => {
   const firebaseLogin = useFirebaseLogin();
   const firebaseRegister = useFirebaseRegister();
   const googleSignIn = useGoogleSignIn();
+  const { success, error } = useToast();
 
   const { redirectTo, onSuccess } = options || {};
 
@@ -30,18 +33,48 @@ export const useAuth = (options?: UseAuthOptions) => {
   };
 
   const login = async (data: LoginInput) => {
-    await firebaseLogin.mutateAsync(data);
-    handleSuccess('email');
+    try {
+      await firebaseLogin.mutateAsync(data);
+      success({
+        title: 'Welcome back!',
+        message: 'You have successfully logged in.',
+      });
+      handleSuccess('email');
+    } catch (err) {
+      const { title, message } = parseFirebaseAuthError(err);
+      error({ title, message });
+      throw err;
+    }
   };
 
   const register = async (data: RegisterInput) => {
-    await firebaseRegister.mutateAsync(data);
-    handleSuccess('email');
+    try {
+      await firebaseRegister.mutateAsync(data);
+      success({
+        title: 'Registration Successful!',
+        message: 'Your account has been created successfully.',
+      });
+      handleSuccess('email');
+    } catch (err) {
+      const { title, message } = parseFirebaseAuthError(err);
+      error({ title, message });
+      throw err;
+    }
   };
 
   const loginWithGoogle = async () => {
-    await googleSignIn.mutateAsync();
-    handleSuccess('google');
+    try {
+      await googleSignIn.mutateAsync();
+      success({
+        title: 'Welcome!',
+        message: 'You have successfully signed in with Google.',
+      });
+      handleSuccess('google');
+    } catch (err) {
+      const { title, message } = parseFirebaseAuthError(err);
+      error({ title, message });
+      throw err;
+    }
   };
 
   return {

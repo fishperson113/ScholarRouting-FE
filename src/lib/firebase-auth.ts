@@ -141,6 +141,16 @@ export const useFirebaseLogout = () => {
     onSuccess: () => {
       queryClient.setQueryData(['firebase-user'], null);
       queryClient.clear();
+      
+      // Show success toast
+      import('@/components/ui/notifications').then(({ useNotifications }) => {
+        const { addNotification } = useNotifications.getState();
+        addNotification({
+          type: 'success',
+          title: 'Logged Out',
+          message: 'You have been successfully logged out.',
+        });
+      });
     },
   });
 };

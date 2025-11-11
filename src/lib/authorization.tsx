@@ -1,6 +1,5 @@
 import * as React from 'react';
-
-import { Comment, User } from '@/types/api';
+import { User as FirebaseUser } from 'firebase/auth';
 
 import { useUser } from './auth';
 
@@ -11,18 +10,13 @@ export enum ROLES {
 
 type RoleTypes = keyof typeof ROLES;
 
-export const POLICIES = {
-  'comment:delete': (user: User, comment: Comment) => {
-    if (user.role === 'ADMIN') {
-      return true;
-    }
-
-    if (user.role === 'USER' && comment.author?.id === user.id) {
-      return true;
-    }
-
-    return false;
-  },
+// For now, all Firebase users are regular users
+// You can extend this later with custom claims or backend roles
+const getUserRole = (user: FirebaseUser | null): RoleTypes => {
+  // TODO: Get role from custom claims or your backend
+  // const customClaims = await user.getIdTokenResult();
+  // return customClaims.claims.role as RoleTypes;
+  return 'USER';
 };
 
 export const useAuthorization = () => {
@@ -35,7 +29,8 @@ export const useAuthorization = () => {
   const checkAccess = React.useCallback(
     ({ allowedRoles }: { allowedRoles: RoleTypes[] }) => {
       if (allowedRoles && allowedRoles.length > 0 && user.data) {
-        return allowedRoles?.includes(user.data.role);
+        const userRole = getUserRole(user.data);
+        return allowedRoles?.includes(userRole);
       }
 
       return true;
@@ -43,7 +38,7 @@ export const useAuthorization = () => {
     [user.data],
   );
 
-  return { checkAccess, role: user.data.role };
+  return { checkAccess, role: getUserRole(user.data) };
 };
 
 type AuthorizationProps = {

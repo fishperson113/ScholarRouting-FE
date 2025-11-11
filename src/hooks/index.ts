@@ -1,6 +1,9 @@
 // Auth hooks
 export { useAuth } from './use-auth';
 
+// Toast hooks
+export { useToast } from './use-toast';
+
 // User profile hooks
 export { useUserProfile, useUpdateProfile } from '@/lib/user-api';
 export type { UserProfile } from '@/lib/user-api';
