@@ -21,14 +21,6 @@ export const paths = {
       path: 'deadlines',
       getHref: () => '/deadlines',
     },
-    discussions: {
-      path: 'discussions',
-      getHref: () => '/discussions',
-    },
-    discussion: {
-      path: 'discussions/:discussionId',
-      getHref: (id: string) => `/discussions/${id}`,
-    },
     users: {
       path: 'users',
       getHref: () => '/users',

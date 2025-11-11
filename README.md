@@ -1,4 +1,4 @@
-# React Vite Application
+# ScholarRouting Frontend
 
 ## Get Started
 
@@ -10,9 +10,8 @@ Prerequisites:
 To set up the app execute the following commands.
 
 ```bash
-git clone https://github.com/alan2207/bulletproof-react.git
-cd bulletproof-react
-cd apps/react-vite
+git clone https://github.com/fishperson113/ScholarRouting-FE.git
+cd ScholarRouting-FE
 cp .env.example .env
 yarn install
 ```
