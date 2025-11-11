@@ -1,17 +1,18 @@
 import { useState } from 'react';
-import { Search, Filter, ChevronDown, Calendar, DollarSign, GraduationCap, ExternalLink, Bookmark, Loader2 } from 'lucide-react';
+import { Search, Filter, ChevronDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useScholarships } from '@/hooks';
+import { useScholarships, useScholarshipCard } from '@/hooks';
 import type { ScholarshipFilters } from '@/types';
 import { ScholarshipFiltersComponent } from '@/features/scholarships/components/scholarship-filters';
 import { ScholarshipSidebarFilters } from '@/features/scholarships/components/scholarship-sidebar-filters';
+import { ScholarshipCard } from '@/features/scholarships/components';
 
 const ScholarshipRoute = () => {
   const [selectedFilter, setSelectedFilter] = useState('Best Match');
   const [showFilters, setShowFilters] = useState(false);
   
   const {
-    scholarships,
+    scholarships: rawScholarships,
     isLoading,
     searchQuery,
     filters,
@@ -21,6 +22,8 @@ const ScholarshipRoute = () => {
     refresh,
   } = useScholarships();
 
+  const { scholarships, handleSave, handleViewDetails } = useScholarshipCard(rawScholarships);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
   };
@@ -28,8 +31,6 @@ const ScholarshipRoute = () => {
   const handleFiltersChange = (newFilters: ScholarshipFilters) => {
     updateFilters(newFilters);
   };
-
-  const filteredScholarships = scholarships;
 
   const hasActiveFilters = Object.values(filters).some(value => 
     value !== undefined && value !== '' && value !== 0 && (Array.isArray(value) ? value.length > 0 : true)
@@ -80,7 +81,7 @@ const ScholarshipRoute = () => {
         </div>
         
         <div className="text-sm text-gray-600">
-          <strong>{filteredScholarships.length}</strong> scholarships found
+          <strong>{scholarships.length}</strong> scholarships found
         </div>
       </div>
 
@@ -119,99 +120,19 @@ const ScholarshipRoute = () => {
           )}
 
           {/* Scholarship Cards */}
-          <div className="space-y-4">
-        {filteredScholarships.map((scholarship: any) => (
-          <div key={scholarship.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-            {/* Header */}
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {scholarship.title}
-                  </h3>
-                  {scholarship.status === 'Expired' && (
-                    <span className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded">
-                      Expired
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span className="flex items-center space-x-1">
-                    <span>{scholarship.organization}</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <span>🇧🇪 {scholarship.country}</span>
-                  </span>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm">
-                <Bookmark className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Tags */}
-            <div className="flex items-center space-x-2 mb-4">
-              {scholarship.tags?.map((tag: string) => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Description */}
-            <p className="text-gray-700 mb-4 line-clamp-2">
-              {scholarship.description}
-            </p>
-
-            {/* Details */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="flex items-center space-x-2">
-                <DollarSign className="w-4 h-4 text-green-600" />
-                <div>
-                  <div className="text-xs text-gray-500">Funding Level</div>
-                  <div className="text-sm font-medium">{scholarship.fundingLevel}</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-blue-600" />
-                <div>
-                  <div className="text-xs text-gray-500">Deadline</div>
-                  <div className="text-sm font-medium">{scholarship.deadline}</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <GraduationCap className="w-4 h-4 text-purple-600" />
-                <div>
-                  <div className="text-xs text-gray-500">Required Degree</div>
-                  <div className="text-sm font-medium">{scholarship.requiredDegree}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-3">
-              <Button className="flex-1 bg-gray-900 hover:bg-gray-800 text-white">
-                View Details
-              </Button>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <span>Save</span>
-              </Button>
-              <Button variant="outline" className="flex items-center space-x-2">
-                <ExternalLink className="w-4 h-4" />
-                <span>Official Site</span>
-              </Button>
-            </div>
-          </div>
-        ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {scholarships.map((scholarship) => (
+              <ScholarshipCard
+                key={scholarship.id}
+                {...scholarship}
+                onSave={handleSave}
+                onViewDetails={handleViewDetails}
+              />
+            ))}
           </div>
 
           {/* Load More */}
-          {filteredScholarships.length > 0 && !isLoading && (
+          {scholarships.length > 0 && !isLoading && (
             <div className="text-center">
               <Button 
                 variant="outline" 

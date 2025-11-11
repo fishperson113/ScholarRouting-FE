@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from './use-toast';
-import { useScholarshipSearch, useScholarshipFilter } from '@/lib/search-api';
+import { useScholarshipFilter } from '@/lib/search-api';
 import type { ScholarshipFilters } from '@/types/scholarship';
 
 interface UseScholarshipsOptions {
@@ -15,44 +15,42 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<ScholarshipFilters>({});
-
-  // Use the search hook from lib with enabled control
-  const searchResult = useScholarshipSearch(
-    searchQuery,
-    collection,
-    {
-      size: initialPageSize,
-      enabled: searchQuery.trim().length > 0,
-    }
-  );
+  const [scholarships, setScholarships] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   const filterMutation = useScholarshipFilter();
 
-  // Filter data when no search query
-  const [filteredData, setFilteredData] = useState<any>(null);
-  const [isFilterLoading, setIsFilterLoading] = useState(false);
-
+  // Load scholarships whenever filters or search changes
   useEffect(() => {
-    if (!searchQuery.trim() && Object.keys(filters).length === 0) {
-      // Load all scholarships when no filters
-      loadWithFilters();
-    } else if (!searchQuery.trim() && Object.keys(filters).length > 0) {
-      // Apply filters
-      loadWithFilters();
-    }
-  }, [filters]);
+    loadScholarships();
+  }, [filters, searchQuery]);
 
-  const loadWithFilters = async () => {
-    setIsFilterLoading(true);
+  const loadScholarships = async () => {
+    setIsLoading(true);
     try {
-      // Convert our filters to the API format
-      const filterItems = Object.entries(filters)
-        .filter(([_, value]) => value !== undefined && value !== '' && value !== 0)
-        .map(([field, value]) => ({
-          field,
-          values: Array.isArray(value) ? value : [String(value)],
+      // Build filter items from both search query and filters
+      const filterItems = [];
+      
+      // Add search query as a filter if present
+      if (searchQuery.trim()) {
+        filterItems.push({
+          field: 'Scholarship_Name',
+          values: [searchQuery.trim()],
           operator: 'OR' as const,
-        }));
+        });
+      }
+      
+      // Add other filters
+      Object.entries(filters).forEach(([field, value]) => {
+        if (value !== undefined && value !== '' && value !== 0) {
+          filterItems.push({
+            field,
+            values: Array.isArray(value) ? value : [String(value)],
+            operator: 'OR' as const,
+          });
+        }
+      });
 
       const result = await filterMutation.mutateAsync({
         collection,
@@ -60,31 +58,31 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
         size: initialPageSize,
       });
       
-      setFilteredData(result);
+      console.log('API Response:', result);
+      
+      // Handle the response - the API returns { total, hits, took }
+      // Each hit might have different structures, so we normalize it
+      const resultData = result as any;
+      const items = resultData?.items || resultData?.hits || [];
+      
+      console.log('Extracted items:', items);
+      
+      setScholarships(items);
+      setTotal(resultData?.total || items.length);
     } catch (err) {
       const error = err as Error;
+      console.error('Error loading scholarships:', error);
       showError({
         title: 'Error Loading Scholarships',
         message: error.message || 'Failed to load scholarships. Please try again.',
       });
       onError?.(error);
+      setScholarships([]);
+      setTotal(0);
     } finally {
-      setIsFilterLoading(false);
+      setIsLoading(false);
     }
   };
-
-  // Determine which data to use
-  const scholarships = searchQuery.trim() 
-    ? searchResult.data?.hits || []
-    : filteredData?.hits || [];
-
-  const isLoading = searchQuery.trim() 
-    ? searchResult.isLoading 
-    : isFilterLoading || filterMutation.isPending;
-
-  const total = searchQuery.trim()
-    ? searchResult.data?.total || 0
-    : filteredData?.total || 0;
 
   // Update search query
   const setSearch = (query: string) => {
@@ -104,11 +102,7 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
 
   // Refresh scholarships
   const refresh = () => {
-    if (searchQuery.trim()) {
-      searchResult.refetch();
-    } else {
-      loadWithFilters();
-    }
+    loadScholarships();
   };
 
   return {

@@ -6,6 +6,7 @@ export { useToast } from './use-toast';
 
 // Scholarship hooks
 export { useScholarships } from './use-scholarships';
+export { useScholarshipCard } from './use-scholarship-card';
 
 // User profile hooks
 export { useUserProfile, useUpdateProfile } from '@/lib/user-api';
