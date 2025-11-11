@@ -1,6 +1,18 @@
 // Scholarship related types
 import type { UserProfile } from './user';
 
+export type ScholarshipFilters = {
+  country?: string;
+  type?: string;
+  status?: string;
+  fundingLevel?: string;
+  tags?: string[];
+  fieldOfStudy?: string;
+  degreeLevel?: string;
+  minGPA?: number;
+  minIELTS?: number;
+};
+
 export type ScholarshipInterest = {
   scholarship_id: string;
   scholarship_name?: string;

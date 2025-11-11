@@ -1,88 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search, Filter, ChevronDown, Calendar, DollarSign, GraduationCap, ExternalLink, Bookmark, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { 
-  useSearchScholarships, 
-  useFilterScholarships, 
-  useFilterOptions,
-  ScholarshipFilters,
-  Scholarship
-} from '@/features/scholarships/api';
-import { ScholarshipFiltersComponent, ExtendedScholarshipFilters } from '@/features/scholarships/components/scholarship-filters';
+import { useScholarships } from '@/hooks';
+import type { ScholarshipFilters } from '@/types';
+import { ScholarshipFiltersComponent } from '@/features/scholarships/components/scholarship-filters';
 import { ScholarshipSidebarFilters } from '@/features/scholarships/components/scholarship-sidebar-filters';
 
 const ScholarshipRoute = () => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('Best Match');
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<ExtendedScholarshipFilters>({});
-  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [filterOptions, setFilterOptions] = useState<any>(null);
-
-  // API hooks
-  const searchMutation = useSearchScholarships();
-  const filterMutation = useFilterScholarships();
-  const filterOptionsMutation = useFilterOptions();
-
-  // Load initial scholarships and filter options
-  useEffect(() => {
-    loadScholarships();
-    loadFilterOptions();
-  }, []);
-
-  const loadScholarships = async () => {
-    setIsLoading(true);
-    try {
-      if (searchQuery.trim()) {
-        const result = await searchMutation.mutateAsync({
-          searchQuery,
-          filters,
-          sortBy: selectedFilter === 'Best Match' ? 'relevance' : 'createdAt',
-          pageSize: 20
-        });
-        setScholarships(result.scholarships);
-      } else {
-        const result = await filterMutation.mutateAsync({
-          filters,
-          sortBy: 'createdAt',
-          sortOrder: 'desc',
-          pageSize: 20
-        });
-        setScholarships(result.scholarships);
-      }
-    } catch (error) {
-      console.error('Error loading scholarships:', error);
-      setScholarships([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const loadFilterOptions = async () => {
-    try {
-      const options = await filterOptionsMutation.mutateAsync();
-      setFilterOptions(options);
-    } catch (error) {
-      console.error('Error loading filter options:', error);
-    }
-  };
-
-  // Trigger search when query or filters change
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      loadScholarships();
-    }, 300); // Debounce search
-
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery, filters, selectedFilter]);
+  
+  const {
+    scholarships,
+    isLoading,
+    searchQuery,
+    filters,
+    total,
+    setSearch,
+    updateFilters,
+    refresh,
+  } = useScholarships();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    setSearch(e.target.value);
   };
 
-  const handleFiltersChange = (newFilters: ExtendedScholarshipFilters) => {
-    setFilters(newFilters);
+  const handleFiltersChange = (newFilters: ScholarshipFilters) => {
+    updateFilters(newFilters);
   };
 
   const filteredScholarships = scholarships;
@@ -148,7 +92,6 @@ const ScholarshipRoute = () => {
             <ScholarshipSidebarFilters
               filters={filters}
               onFiltersChange={handleFiltersChange}
-              filterOptions={filterOptions}
             />
           </div>
         )}
@@ -177,7 +120,7 @@ const ScholarshipRoute = () => {
 
           {/* Scholarship Cards */}
           <div className="space-y-4">
-        {filteredScholarships.map((scholarship) => (
+        {filteredScholarships.map((scholarship: any) => (
           <div key={scholarship.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -273,7 +216,7 @@ const ScholarshipRoute = () => {
               <Button 
                 variant="outline" 
                 className="px-8"
-                onClick={loadScholarships}
+                onClick={refresh}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -296,7 +239,6 @@ const ScholarshipRoute = () => {
         onFiltersChange={handleFiltersChange}
         isVisible={showFilters}
         onClose={() => setShowFilters(false)}
-        filterOptions={filterOptions}
       />
       </div>
     </div>

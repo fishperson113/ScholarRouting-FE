@@ -3,3 +3,6 @@ export * from './api';
 export * from './user';
 export * from './scholarship';
 export * from './search';
+
+// Explicitly export commonly used types for convenience
+export type { ScholarshipFilters } from './scholarship';

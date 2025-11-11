@@ -1,8 +1,8 @@
-import { ExtendedScholarshipFilters } from './scholarship-filters';
+import type { ScholarshipFilters } from '@/types/scholarship';
 
 interface ScholarshipSidebarFiltersProps {
-  filters: ExtendedScholarshipFilters;
-  onFiltersChange: (filters: ExtendedScholarshipFilters) => void;
+  filters: ScholarshipFilters;
+  onFiltersChange: (filters: ScholarshipFilters) => void;
   filterOptions?: {
     countries: string[];
     types: string[];
@@ -19,7 +19,7 @@ export const ScholarshipSidebarFilters = ({
   onFiltersChange,
   filterOptions
 }: ScholarshipSidebarFiltersProps) => {
-  const handleFilterChange = (key: keyof ExtendedScholarshipFilters, value: string | string[] | number | undefined) => {
+  const handleFilterChange = (key: keyof ScholarshipFilters, value: string | string[] | number | undefined) => {
     const newFilters = { ...filters, [key]: value };
     onFiltersChange(newFilters);
   };

@@ -1,18 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ScholarshipFilters } from '../api';
-
-export interface ExtendedScholarshipFilters extends ScholarshipFilters {
-  fieldOfStudy?: string;
-  degreeLevel?: string;
-  minGPA?: number;
-  minIELTS?: number;
-}
+import type { ScholarshipFilters } from '@/types/scholarship';
 
 interface ScholarshipFiltersProps {
-  filters: ExtendedScholarshipFilters;
-  onFiltersChange: (filters: ExtendedScholarshipFilters) => void;
+  filters: ScholarshipFilters;
+  onFiltersChange: (filters: ScholarshipFilters) => void;
   isVisible: boolean;
   onClose: () => void;
   filterOptions?: {
@@ -33,7 +26,7 @@ export const ScholarshipFiltersComponent = ({
   onClose,
   filterOptions
 }: ScholarshipFiltersProps) => {
-  const [localFilters, setLocalFilters] = useState<ExtendedScholarshipFilters>(filters);
+  const [localFilters, setLocalFilters] = useState<ScholarshipFilters>(filters);
   const [expandedSections, setExpandedSections] = useState({
     countries: true,
     fieldsOfStudy: true,
@@ -47,7 +40,7 @@ export const ScholarshipFiltersComponent = ({
     setLocalFilters(filters);
   }, [filters]);
 
-  const handleFilterChange = (key: keyof ExtendedScholarshipFilters, value: string | string[] | number | undefined) => {
+  const handleFilterChange = (key: keyof ScholarshipFilters, value: string | string[] | number | undefined) => {
     const newFilters = { ...localFilters, [key]: value };
     setLocalFilters(newFilters);
   };
@@ -62,7 +55,7 @@ export const ScholarshipFiltersComponent = ({
   };
 
   const clearFilters = () => {
-    const emptyFilters: ExtendedScholarshipFilters = {};
+    const emptyFilters: ScholarshipFilters = {};
     setLocalFilters(emptyFilters);
     onFiltersChange(emptyFilters);
   };

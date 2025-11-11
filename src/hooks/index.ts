@@ -4,6 +4,9 @@ export { useAuth } from './use-auth';
 // Toast hooks
 export { useToast } from './use-toast';
 
+// Scholarship hooks
+export { useScholarships } from './use-scholarships';
+
 // User profile hooks
 export { useUserProfile, useUpdateProfile } from '@/lib/user-api';
 
@@ -39,6 +42,7 @@ export type {
   ScholarshipApplication,
   MatchedScholarship,
   MatchResult,
+  ScholarshipFilters,
 } from '@/types/scholarship';
 
 export type {
