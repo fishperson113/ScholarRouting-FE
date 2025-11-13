@@ -38,9 +38,13 @@ const ScholarshipDetailsRoute = () => {
           throw new Error(`Failed to fetch scholarship: ${response.status}`);
         }
 
-        const data = await response.json();
-        console.log('Scholarship data:', data);
-        setScholarship(data);
+        const result = await response.json();
+        console.log('API Response:', result);
+        
+        // Handle nested structure: { id: "...", data: {...} }
+        const scholarshipData = result.data || result;
+        console.log('Scholarship data:', scholarshipData);
+        setScholarship(scholarshipData);
       } catch (err) {
         console.error('Error fetching scholarship:', err);
         setError(err instanceof Error ? err.message : 'Failed to load scholarship');
