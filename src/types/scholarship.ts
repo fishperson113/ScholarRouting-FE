@@ -26,9 +26,12 @@ export type ScholarshipInterest = {
 export type ScholarshipApplication = {
   scholarship_id: string;
   scholarship_name?: string;
+  institution?: string;
+  location?: string;
   application_date?: string;
   deadline?: string;
-  status?: 'draft' | 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
+  status?: 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
+  amount?: string;
   documents_submitted?: string[];
   notes?: string;
   [key: string]: any;
