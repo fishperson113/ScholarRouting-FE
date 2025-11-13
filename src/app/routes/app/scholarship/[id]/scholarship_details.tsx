@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
 
-type TabType = 'overview' | 'eligibility' | 'documents' | 'process' | 'similar';
+type TabType = 'overview' | 'eligibility' | 'documents' | 'funding' | 'requirements';
 
 interface ScholarshipData {
   [key: string]: any;
@@ -90,10 +90,10 @@ const ScholarshipDetailsRoute = () => {
 
   const tabs: { id: TabType; label: string }[] = [
     { id: 'overview', label: 'Overview' },
-    { id: 'eligibility', label: 'Eligibility' },
-    { id: 'documents', label: 'Documents' },
-    { id: 'process', label: 'Process' },
-    { id: 'similar', label: 'Similar' },
+    { id: 'eligibility', label: 'Eligibility Fields' },
+    { id: 'documents', label: 'Scholarship Documents' },
+    { id: 'funding', label: 'Funding Details' },
+    { id: 'requirements', label: 'Other Requirements' },
   ];
 
   // Loading state
@@ -295,12 +295,12 @@ const ScholarshipDetailsRoute = () => {
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Eligibility Requirements</h2>
                 <div className="space-y-4">
-                  {getField('Required_Degree') !== 'N/A' && (
+                  {getField('Eligible_Fields') !== 'N/A' && (
                     <div className="flex items-start gap-2">
                       <span className="text-green-600 mt-1">✓</span>
                       <div>
                         <span className="font-medium">Degree Level: </span>
-                        <span className="text-gray-700">{getField('Required_Degree')}</span>
+                        <span className="text-gray-700">{getField('Eligible_Fields')}</span>
                       </div>
                     </div>
                   )}
@@ -337,70 +337,28 @@ const ScholarshipDetailsRoute = () => {
 
             {activeTab === 'documents' && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Required Documents</h2>
-                <p className="text-gray-600 mb-4">
-                  Please check the official website for the complete list of required documents.
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">📄</span>
-                    <span className="text-gray-700">Academic transcripts</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">📄</span>
-                    <span className="text-gray-700">Letter of recommendation</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">📄</span>
-                    <span className="text-gray-700">Personal statement</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">📄</span>
-                    <span className="text-gray-700">Proof of enrollment</span>
-                  </div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Scholarships Documents</h2>
+                 <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {getField('Application_Documents', 'No description available.')}
                 </div>
               </div>
             )}
 
-            {activeTab === 'process' && (
+            {activeTab === 'funding' && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Application Process</h2>
-                <p className="text-gray-600 mb-4">
-                  Visit the official website for detailed application instructions.
-                </p>
-                <ol className="space-y-3">
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      1
-                    </span>
-                    <span className="text-gray-700 pt-0.5">Review eligibility requirements</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      2
-                    </span>
-                    <span className="text-gray-700 pt-0.5">Prepare required documents</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      3
-                    </span>
-                    <span className="text-gray-700 pt-0.5">Submit online application</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
-                      4
-                    </span>
-                    <span className="text-gray-700 pt-0.5">Wait for review and decision</span>
-                  </li>
-                </ol>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Funding Details</h2>
+                <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {getField('Funding_Details', 'No description available.')}
+                </div>
               </div>
             )}
 
-            {activeTab === 'similar' && (
+            {activeTab === 'requirements' && (
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Similar Scholarships</h2>
-                <p className="text-gray-600">Similar scholarships will be displayed here.</p>
+                <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {getField('Other_Requirements', 'No description available.')}
+                </div>
               </div>
             )}
           </div>
