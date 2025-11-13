@@ -6,6 +6,7 @@ import type { ScholarshipFilters } from '@/types';
 import { ScholarshipFiltersComponent } from '@/features/scholarships/components/scholarship-filters';
 import { ScholarshipSidebarFilters } from '@/features/scholarships/components/scholarship-sidebar-filters';
 import { ScholarshipCard } from '@/features/scholarships/components';
+import { Chatbot } from '@/components/chatbot';
 
 const ScholarshipRoute = () => {
   const [selectedFilter, setSelectedFilter] = useState('Best Match');
@@ -172,6 +173,9 @@ const ScholarshipRoute = () => {
         onClose={() => setShowFilters(false)}
       />
       </div>
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 };
