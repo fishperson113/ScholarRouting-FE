@@ -65,9 +65,25 @@ const ApplicationsRoute = () => {
   const user = useUser();
   const uid = user.data?.uid;
 
-  // Fetch applications from API
-  const { data: applicationsData, isLoading, error } = useScholarshipApplications(uid);
+  // Debug logging
+  useEffect(() => {
+    console.log('User data:', user.data);
+    console.log('UID:', uid);
+  }, [user.data, uid]);
+
+  // Fetch applications from API - only when uid is available
+  const { data: applicationsData, isLoading, error, refetch } = useScholarshipApplications(uid);
   const updateApplicationMutation = useUpdateScholarshipApplication();
+
+  // Debug logging for API response
+  useEffect(() => {
+    if (applicationsData) {
+      console.log('Applications data received:', applicationsData);
+    }
+    if (error) {
+      console.error('Error fetching applications:', error);
+    }
+  }, [applicationsData, error]);
 
   // Transform API data to UI format
   const applications = useMemo(() => {
@@ -148,13 +164,49 @@ const ApplicationsRoute = () => {
     );
   }
 
-  // Error state
+  // Not authenticated state
+  if (!user.data) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Please log in to view your applications.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state with detailed information
   if (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">Failed to load applications. Please try again later.</p>
+        <div className="max-w-7xl mx-auto p-6 space-y-4">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-900 mb-2">Failed to load applications</h2>
+            <p className="text-red-800 mb-4">{errorMessage}</p>
+            <div className="space-y-2 text-sm text-red-700">
+              <p><strong>User ID:</strong> {uid || 'Not available'}</p>
+              <p><strong>API URL:</strong> Check your .env file for VITE_APP_API_URL</p>
+            </div>
+            <button
+              onClick={() => refetch()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+          
+          {/* Debug information */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="font-semibold text-yellow-900 mb-2">Troubleshooting Steps:</h3>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-yellow-800">
+              <li>Check if your backend API is running</li>
+              <li>Verify VITE_APP_API_URL in your .env file</li>
+              <li>Ensure you're logged in with a valid account</li>
+              <li>Check browser console for detailed error messages</li>
+              <li>Verify Firebase configuration is correct</li>
+            </ol>
           </div>
         </div>
       </div>
@@ -318,21 +370,22 @@ const ApplicationsRoute = () => {
                             <ChevronDown className="w-3 h-3" />
                           </button>
                           
-                          {openStatusDropdown === app.id && (
+                          {openStatusDropdown === app.id && statusDropdownRefs.current[app.id] && (
                             <div 
-                              className="fixed mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-xl z-[100]"
+                              className="fixed mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-2xl z-[100]"
                               style={{
-                                top: `${statusDropdownRefs.current[app.id]?.getBoundingClientRect().bottom}px`,
-                                left: `${statusDropdownRefs.current[app.id]?.getBoundingClientRect().left}px`
+                                top: `${statusDropdownRefs.current[app.id]!.getBoundingClientRect().bottom + 4}px`,
+                                left: `${statusDropdownRefs.current[app.id]!.getBoundingClientRect().left}px`
                               }}
                             >
-                              <div className="py-1">
+                              <div className="py-1 bg-white">
                                 {allStatusOptions.map((status) => (
                                   <button
                                     key={status}
                                     onClick={() => handleStatusChange(app.id, status)}
                                     className={cn(
-                                      'w-full text-left px-4 py-2 text-sm hover:bg-purple-50 hover:text-purple-700 transition-colors',
+                                      'w-full text-left px-4 py-2 text-sm transition-colors bg-white',
+                                      'hover:bg-purple-50 hover:text-purple-700',
                                       app.status === status && 'bg-purple-50 text-purple-700 font-medium'
                                     )}
                                   >

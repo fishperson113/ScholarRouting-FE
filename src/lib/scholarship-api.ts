@@ -112,17 +112,37 @@ export const useScholarshipApplications = (uid?: string) => {
     queryKey: ['scholarship-applications', uid],
     queryFn: async () => {
       const currentUid = uid || auth.currentUser?.uid;
-      if (!currentUid) throw new Error('No user ID provided');
-      
-      const response = await fetch(`${API_URL}/user/applications/${currentUid}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch applications');
+      if (!currentUid) {
+        console.error('No user ID available for fetching applications');
+        throw new Error('No user ID provided. Please log in.');
       }
       
-      return response.json() as Promise<{ uid: string; applications: ScholarshipApplication[] }>;
+      const url = `${API_URL}/user/applications/${currentUid}`;
+      console.log('Fetching applications from:', url);
+      
+      try {
+        const response = await fetch(url);
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error Response:', errorText);
+          throw new Error(`Failed to fetch applications: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Applications data:', data);
+        
+        return data as { uid: string; applications: ScholarshipApplication[] };
+      } catch (error) {
+        console.error('Error in useScholarshipApplications:', error);
+        throw error;
+      }
     },
     enabled: !!uid || !!auth.currentUser,
+    retry: 1,
+    retryDelay: 1000,
   });
 };
 
