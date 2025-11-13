@@ -13,6 +13,10 @@ export const paths = {
       path: 'scholarships',
       getHref: () => '/scholarships',
     },
+    scholarshipDetail: {
+      path: 'scholarships/:id',
+      getHref: (id: string) => `/scholarships/${id}`,
+    },
     applications: {
       path: 'applications',
       getHref: () => '/applications',

@@ -1,5 +1,7 @@
 import { useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import type { ScholarshipCardProps } from '@/features/scholarships/components/scholarship-card';
+import { paths } from '@/config/paths';
 
 interface RawScholarship {
   id?: string;
@@ -39,6 +41,8 @@ interface RawScholarship {
 }
 
 export const useScholarshipCard = (scholarships: RawScholarship[]) => {
+  const navigate = useNavigate();
+  
   // Transform raw scholarship data to card props
   const transformedScholarships = useMemo(() => {
     if (!scholarships || !Array.isArray(scholarships)) {
@@ -160,10 +164,10 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
 
   // Handle view details action
   const handleViewDetails = useCallback((scholarshipId: string) => {
-    // TODO: Implement navigation to details page
     console.log('Viewing details for:', scholarshipId);
-    // This would typically navigate to a detail page
-  }, []);
+    // Navigate to detail page using React Router
+    navigate(paths.app.scholarshipDetail.getHref(scholarshipId));
+  }, [navigate]);
 
   return {
     scholarships: transformedScholarships,

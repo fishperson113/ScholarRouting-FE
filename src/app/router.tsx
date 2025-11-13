@@ -38,7 +38,11 @@ export const createAppRouter = (queryClient: QueryClient) =>
       children: [
         {
           path: paths.app.scholarships.path,
-          lazy: () => import('./routes/app/scholarship').then(convert(queryClient)),
+          lazy: () => import('./routes/app/scholarship/scholarship').then(convert(queryClient)),
+        },
+        {
+          path: paths.app.scholarshipDetail.path,
+          lazy: () => import('./routes/app/scholarship/[id]/scholarship_details').then(convert(queryClient)),
         },
         {
           path: paths.app.applications.path,
