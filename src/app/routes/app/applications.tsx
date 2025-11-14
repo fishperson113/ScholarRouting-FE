@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, ChevronDown, MoreHorizontal, Calendar, AlertTriangle } from 'lucide-react';
+import { Search, ChevronDown, MoreHorizontal, Calendar, AlertTriangle, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { useScholarshipApplications, useUpdateScholarshipApplication } from '@/lib/scholarship-api';
 import { useUser } from '@/lib/auth';
@@ -17,7 +17,7 @@ interface Application {
   status: ApplicationStatus;
   deadline: string;
   isUrgent?: boolean;
-  amount: string;
+  notes: string;
 }
 
 const statusColors: Record<ApplicationStatus, string> = {
@@ -51,12 +51,27 @@ function isDeadlineUrgent(deadline: string): boolean {
   }
 }
 
+// Helper function to format ISO 8601 date to dd/mm/yyyy
+function formatDate(isoDate: string): string {
+  try {
+    const date = new Date(isoDate);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return 'Invalid date';
+  }
+}
+
 const ApplicationsRoute = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilterOption>('All Status');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
   const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
   const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -89,9 +104,12 @@ const ApplicationsRoute = () => {
   const applications = useMemo(() => {
     if (!applicationsData?.applications) return [];
     
-    return applicationsData.applications.map((app: ScholarshipApplication) => {
-      // Check if deadline is urgent (within 30 days)
-      const isUrgent = app.deadline ? isDeadlineUrgent(app.deadline) : false;
+    return applicationsData.applications.map((app: any) => {
+      // Format applied_date to dd/mm/yyyy for deadline column
+      const formattedDeadline = app.applied_date ? formatDate(app.applied_date) : 'No deadline';
+      
+      // Check if deadline is urgent (within 30 days) using applied_date
+      const isUrgent = app.applied_date ? isDeadlineUrgent(app.applied_date) : false;
       
       // Ensure status is one of the valid values, default to 'submitted'
       const validStatus: ApplicationStatus = 
@@ -99,15 +117,18 @@ const ApplicationsRoute = () => {
           ? (app.status as ApplicationStatus)
           : 'submitted';
       
+      // The API returns 'name' not 'scholarship_name'
+      const scholarshipName = app.name || app.scholarship_name || 'Unknown Scholarship';
+      
       return {
         id: app.scholarship_id,
-        scholarshipName: app.scholarship_name || 'Unknown Scholarship',
+        scholarshipName: scholarshipName,
         institution: app.institution || 'Unknown Institution',
         location: app.location || 'Unknown Location',
         status: validStatus,
-        deadline: app.deadline || 'No deadline',
+        deadline: formattedDeadline,
         isUrgent,
-        amount: app.amount || 'Not specified',
+        notes: app.notes || '',
       } as Application;
     });
   }, [applicationsData]);
@@ -326,7 +347,7 @@ const ApplicationsRoute = () => {
                     Deadline
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Amount
+                    Notes
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {/* Actions */}
@@ -409,9 +430,21 @@ const ApplicationsRoute = () => {
                         </div>
                       </td>
 
-                      {/* Amount */}
+                      {/* Notes */}
                       <td className="px-6 py-4">
-                        <span className="text-sm text-gray-900">{app.amount}</span>
+                        {app.notes ? (
+                          <button
+                            onClick={() => {
+                              setSelectedApplication(app);
+                              setNotesDialogOpen(true);
+                            }}
+                            className="text-sm text-gray-900 hover:text-purple-600 transition-colors text-left max-w-xs truncate block"
+                          >
+                            {app.notes.length > 50 ? `${app.notes.substring(0, 50)}...` : app.notes}
+                          </button>
+                        ) : (
+                          <span className="text-sm text-gray-400 italic">No notes</span>
+                        )}
                       </td>
 
                       {/* Actions */}
@@ -428,6 +461,57 @@ const ApplicationsRoute = () => {
           </div>
         </div>
       </div>
+
+      {/* Notes Dialog */}
+      {notesDialogOpen && selectedApplication && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col">
+            {/* Dialog Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {selectedApplication.scholarshipName}
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  {selectedApplication.institution} • {selectedApplication.location}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setNotesDialogOpen(false);
+                  setSelectedApplication(null);
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Dialog Content */}
+            <div className="p-6 overflow-y-auto flex-1">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Notes</h3>
+              {selectedApplication.notes ? (
+                <p className="text-gray-900 whitespace-pre-wrap">{selectedApplication.notes}</p>
+              ) : (
+                <p className="text-gray-400 italic">No notes available for this application.</p>
+              )}
+            </div>
+
+            {/* Dialog Footer */}
+            <div className="flex justify-end p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setNotesDialogOpen(false);
+                  setSelectedApplication(null);
+                }}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

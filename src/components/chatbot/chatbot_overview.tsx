@@ -12,79 +12,66 @@ interface Message {
   timestamp: Date;
 }
 
+// Helper function to parse inline markdown (bold text with **)
+function parseInlineMarkdown(text: string): (string | JSX.Element)[] {
+  const parts: (string | JSX.Element)[] = [];
+  let lastIndex = 0;
+  let keyIndex = 0;
+  
+  // Match **text** patterns
+  const boldRegex = /\*\*(.+?)\*\*/g;
+  let match;
+  
+  while ((match = boldRegex.exec(text)) !== null) {
+    // Add text before the match
+    if (match.index > lastIndex) {
+      parts.push(text.substring(lastIndex, match.index));
+    }
+    
+    // Add bold text
+    parts.push(
+      <strong key={`bold-${keyIndex++}`} className="font-semibold">
+        {match[1]}
+      </strong>
+    );
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if (lastIndex < text.length) {
+    parts.push(text.substring(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : [text];
+}
+
 // Component to render formatted scholarship text
 function FormattedScholarshipMessage({ text }: { text: string }) {
   const lines = text.split('\n');
   const elements: JSX.Element[] = [];
-  let scholarshipNumber = 0;
   let keyIndex = 0;
 
-  lines.forEach((line) => {
+  lines.forEach((line, lineIndex) => {
     const trimmedLine = line.trim();
     if (!trimmedLine) return;
 
-    // Check if line contains a scholarship name (with or without number and **)
-    const scholarshipMatch = trimmedLine.match(/^(?:\d+\.\s*)?\*\*(.+?)\*\*\s*\((.+?)\)/);
-    const simpleScholarshipMatch = trimmedLine.match(/^(?:\d+\.\s*)?\*\*(.+?)\*\*/);
-    
-    if (scholarshipMatch) {
-      // Scholarship name with location (e.g., "**Name** (Country)")
-      scholarshipNumber++;
-      elements.push(  
-        <div key={`scholarship-${keyIndex++}`} className="mb-2 mt-3">
-          <div className="font-bold text-gray-900">
-            {scholarshipNumber}. {scholarshipMatch[1]} ({scholarshipMatch[2]})
-          </div>
-        </div>
-      );
-    } else if (simpleScholarshipMatch) {
-      // Simple scholarship name (e.g., "**Name**")
-      scholarshipNumber++;
+    // Check if it's a bullet point (starts with *)
+    if (trimmedLine.startsWith('*')) {
+      // Remove the leading * and trim
+      const content = trimmedLine.substring(1).trim();
+      
       elements.push(
-        <div key={`scholarship-${keyIndex++}`} className="mb-2 mt-3">
-          <div className="font-bold text-gray-900">
-            {scholarshipNumber}. {simpleScholarshipMatch[1]}
-          </div>
+        <div key={`line-${keyIndex++}`} className="mb-1 text-sm ml-4 flex">
+          <span className="mr-2">•</span>
+          <span className="flex-1">{parseInlineMarkdown(content)}</span>
         </div>
       );
-    } else if (trimmedLine.startsWith('*') && trimmedLine.includes(':')) {
-      // Attribute line starting with * (e.g., "* **Benefits:** content")
-      // Remove leading * and **
-      const cleanLine = trimmedLine.replace(/^\*\s*\*\*/, '').replace(/\*\*/, '');
-      const colonIndex = cleanLine.indexOf(':');
-      
-      if (colonIndex > -1) {
-        const attributeName = cleanLine.substring(0, colonIndex).trim();
-        const attributeContent = cleanLine.substring(colonIndex + 1).trim();
-        
-        elements.push(
-          <div key={`attr-${keyIndex++}`} className="mb-1 text-sm ml-2">
-            <span className="font-bold">{attributeName}:</span>
-            {attributeContent && <span> {attributeContent}</span>}
-          </div>
-        );
-      }
-    } else if (trimmedLine.includes('**') && trimmedLine.includes(':')) {
-      // Attribute line with ** markers (e.g., "**Benefits:** content")
-      const cleanLine = trimmedLine.replace(/\*\*/g, '');
-      const colonIndex = cleanLine.indexOf(':');
-      
-      if (colonIndex > -1) {
-        const attributeName = cleanLine.substring(0, colonIndex).trim();
-        const attributeContent = cleanLine.substring(colonIndex + 1).trim();
-        
-        elements.push(
-          <div key={`attr-${keyIndex++}`} className="mb-1 text-sm">
-            <span className="font-bold">{attributeName}:</span>
-            {attributeContent && <span> {attributeContent}</span>}
-          </div>
-        );
-      }
     } else {
-      // Regular text line
+      // Regular text line with inline markdown support
       elements.push(
-        <div key={`text-${keyIndex++}`} className="mb-1 text-sm">
-          {trimmedLine}
+        <div key={`line-${keyIndex++}`} className="mb-1 text-sm">
+          {parseInlineMarkdown(trimmedLine)}
         </div>
       );
     }
