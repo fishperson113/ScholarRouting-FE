@@ -123,8 +123,8 @@ const ApplicationsRoute = () => {
       return {
         id: app.scholarship_id,
         scholarshipName: scholarshipName,
-        institution: app.institution || 'Unknown Institution',
-        location: app.location || 'Unknown Location',
+        // institution: app.institution || 'Unknown Institution',
+        // location: app.location || 'Unknown Location',
         status: validStatus,
         deadline: formattedDeadline,
         isUrgent,
@@ -337,19 +337,19 @@ const ApplicationsRoute = () => {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
                     Scholarship
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
                     Status
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
                     Deadline
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
                     Notes
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[10%]">
                     {/* Actions */}
                   </th>
                 </tr>
@@ -371,15 +371,12 @@ const ApplicationsRoute = () => {
                       <td className="px-6 py-4">
                         <div>
                           <div className="font-medium text-gray-900">{app.scholarshipName}</div>
-                          <div className="text-sm text-gray-500">
-                            {app.institution} • {app.location}
-                          </div>
                         </div>
                       </td>
 
                       {/* Status */}
-                      <td className="px-6 py-4 relative">
-                        <div className="relative z-10" ref={el => statusDropdownRefs.current[app.id] = el}>
+                      <td className="px-6 py-4">
+                        <div className="relative" ref={el => statusDropdownRefs.current[app.id] = el}>
                           <button 
                             onClick={() => setOpenStatusDropdown(openStatusDropdown === app.id ? null : app.id)}
                             className={cn(
@@ -393,19 +390,19 @@ const ApplicationsRoute = () => {
                           
                           {openStatusDropdown === app.id && statusDropdownRefs.current[app.id] && (
                             <div 
-                              className="fixed mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-2xl z-[100]"
+                              className="fixed mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-2xl z-[9999]"
                               style={{
                                 top: `${statusDropdownRefs.current[app.id]!.getBoundingClientRect().bottom + 4}px`,
                                 left: `${statusDropdownRefs.current[app.id]!.getBoundingClientRect().left}px`
                               }}
                             >
-                              <div className="py-1 bg-white">
+                              <div className="py-1 bg-white rounded-md">
                                 {allStatusOptions.map((status) => (
                                   <button
                                     key={status}
                                     onClick={() => handleStatusChange(app.id, status)}
                                     className={cn(
-                                      'w-full text-left px-4 py-2 text-sm transition-colors bg-white',
+                                      'w-full text-left px-4 py-2 text-sm transition-colors',
                                       'hover:bg-purple-50 hover:text-purple-700',
                                       app.status === status && 'bg-purple-50 text-purple-700 font-medium'
                                     )}
