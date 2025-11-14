@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings } from 'lucide-react';
+import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings, Check, Zap, Sparkles } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
+
+type ChatbotPlan = 'basic' | 'pro';
 
 interface Message {
   id: string;
@@ -28,7 +30,7 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
     if (scholarshipMatch) {
       // Scholarship name with location (e.g., "**Name** (Country)")
       scholarshipNumber++;
-      elements.push(
+      elements.push(  
         <div key={`scholarship-${keyIndex++}`} className="mb-2 mt-3">
           <div className="font-bold text-gray-900">
             {scholarshipNumber}. {scholarshipMatch[1]} ({scholarshipMatch[2]})
@@ -93,6 +95,8 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
 
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showPlanSelection, setShowPlanSelection] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<ChatbotPlan | null>(null);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -137,6 +141,11 @@ export function Chatbot() {
     setMessages(prev => [...prev, stopMessage]);
   };
 
+  const handlePlanSelect = (plan: ChatbotPlan) => {
+    setSelectedPlan(plan);
+    setShowPlanSelection(false);
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim() || isThinking) return;
 
@@ -157,13 +166,16 @@ export function Chatbot() {
     abortControllerRef.current = new AbortController();
 
     try {
-      // Send POST request to chatbot API
+      // Send POST request to chatbot API with plan information
       const response = await fetch(`${env.API_URL}/chatbot/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ 
+          query,
+          plan: selectedPlan 
+        }),
         signal: abortControllerRef.current.signal,
       });
 
@@ -218,13 +230,139 @@ export function Chatbot() {
   if (!isOpen) {
     return (
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          setShowPlanSelection(true);
+        }}
         className="fixed right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 z-50"
         style={{ bottom: 'calc(1.5rem + 30px)' }}
         aria-label="Open chat"
       >
         <MessageCircle className="w-6 h-6" />
       </button>
+    );
+  }
+
+  // Plan Selection Screen
+  if (showPlanSelection) {
+    return (
+      <div className="fixed right-6 z-50" style={{ bottom: 'calc(1.5rem + 30px)' }}>
+        <div className="bg-white rounded-lg shadow-2xl w-[460px] flex flex-col">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 rounded-t-lg flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">SR</span>
+              </div>
+              <div>
+                <div className="font-semibold">Choose Your Plan</div>
+                <div className="text-sm text-blue-200">Select a plan to start chatting</div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setShowPlanSelection(false);
+              }}
+              className="p-1 hover:bg-blue-700 rounded transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Plan Options */}
+          <div className="p-6 space-y-4">
+            {/* Basic Plan */}
+            <button
+              onClick={() => handlePlanSelect('basic')}
+              className="w-full text-left p-5 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all group"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Zap className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Basic</h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-gray-900">Free</div>
+                      <div className="text-xs text-gray-500">0 VND/month</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Suitable for answering quick and simple questions.
+                  </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span>Limited number of queries</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Pro Plan */}
+            <button
+              onClick={() => handlePlanSelect('pro')}
+              className="w-full text-left p-5 border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg hover:border-purple-500 hover:shadow-md transition-all group relative overflow-hidden"
+            >
+              <div className="absolute top-2 right-2">
+              </div>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="w-5 h-5 text-purple-600" />
+                      <h3 className="text-lg font-bold text-gray-900">Pro</h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-purple-600">119.000₫</div>
+                      <div className="text-xs text-gray-500">/month</div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Advanced features for comprehensive scholarship search.
+                  </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span>Unlimited basic queries</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span>100 advanced queries per day</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span>Integrate personal information</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span>Internet Search for latest info</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-700">
+                      <Check className="w-4 h-4 text-green-600 mr-2" />
+                      <span>Support CV upload for analysis</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                    <Check className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -247,7 +385,19 @@ export function Chatbot() {
             
             {/* Name and Status */}
             <div>
-              <div className="font-semibold">Chat with</div>
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold">Chat with</span>
+                {selectedPlan && (
+                  <span className={cn(
+                    "text-xs font-bold px-2 py-0.5 rounded-full",
+                    selectedPlan === 'pro' 
+                      ? "bg-purple-500 text-white" 
+                      : "bg-blue-500 text-white"
+                  )}>
+                    {selectedPlan.toUpperCase()}
+                  </span>
+                )}
+              </div>
               <div className="text-sm">Scholarship Routing Bot</div>
               <div className="text-xs text-blue-200">We're online</div>
             </div>
@@ -263,8 +413,10 @@ export function Chatbot() {
               <ChevronDown className={cn('w-5 h-5 transition-transform', isMinimized && 'rotate-180')} />
             </button>
             <button
+              onClick={() => setShowPlanSelection(true)}
               className="p-1 hover:bg-blue-700 rounded transition-colors"
-              aria-label="Settings"
+              aria-label="Change Plan"
+              title="Change Plan"
             >
               <Settings className="w-5 h-5" />
             </button>

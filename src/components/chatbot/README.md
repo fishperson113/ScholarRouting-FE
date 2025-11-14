@@ -5,16 +5,33 @@ A beautiful, interactive chatbot widget for the scholarship page.
 ## Features
 
 ✅ **Floating Button** - Purple circular button in bottom-right corner  
+✅ **Plan Selection** - Choose between Basic and Pro plans before chatting  
 ✅ **Expandable Interface** - Opens to full chat window  
 ✅ **Minimize/Maximize** - Toggle between minimized and full view  
-✅ **Avatar & Name** - Shows "Jessica Cowles" with avatar  
+✅ **Avatar & Name** - Shows "Scholarship Routing Bot" with avatar  
+✅ **Plan Indicator** - Displays selected plan (BASIC/PRO) in header  
 ✅ **Online Status** - Displays "We're online"  
 ✅ **Message History** - Scrollable conversation area  
 ✅ **Quick Reply Buttons** - "Yes, sure!" and "No, thanks." buttons  
 ✅ **Message Input** - Text field with emoji and attachment icons  
 ✅ **Send Button** - Blue circular send button  
-✅ **Settings** - Settings icon in header  
+✅ **Stop Button** - Stop ongoing requests  
+✅ **Settings** - Change plan via settings icon in header  
 ✅ **Smooth Animations** - Transitions and hover effects  
+✅ **API Integration** - Connected to backend chatbot API
+
+## Plan Options
+
+### Basic Plan
+- Limited number of queries
+- Suitable for answering quick and simple questions
+
+### Pro Plan (Recommended)
+- Unlimited basic queries
+- 100 advanced queries per day
+- Integrate personal information
+- Internet Search to update new information
+- Support CV upload for analysis  
 
 ## Usage
 
@@ -95,11 +112,30 @@ import { Chatbot } from '@/components/chatbot';
 <Chatbot />
 ```
 
+## API Integration
+
+The chatbot sends requests to `POST /api/v1/chatbot/ask` with the following payload:
+
+```json
+{
+  "query": "user's question",
+  "plan": "basic" | "pro"
+}
+```
+
+Expected response format:
+```json
+{
+  "answer": "bot's response"
+}
+```
+
 ## Future Enhancements
 
-- [ ] Connect to real chat API
-- [ ] Add typing indicator
-- [ ] Add file upload functionality
+- [x] Connect to real chat API
+- [x] Add typing indicator
+- [x] Add plan selection
+- [ ] Add file upload functionality (Pro plan)
 - [ ] Add emoji picker
 - [ ] Add chat history persistence
 - [ ] Add notification sound
@@ -107,6 +143,9 @@ import { Chatbot } from '@/components/chatbot';
 - [ ] Add multiple agent support
 - [ ] Add chat transcript download
 - [ ] Add language selection
+- [ ] Add CV upload for Pro plan
+- [ ] Add personal information integration for Pro plan
+- [ ] Add Internet Search integration for Pro plan
 
 ## Position
 
