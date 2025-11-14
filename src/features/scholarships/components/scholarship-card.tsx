@@ -54,7 +54,7 @@ export const ScholarshipCard = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full">
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
@@ -151,11 +151,14 @@ export const ScholarshipCard = ({
         </div>
       )}
 
+      {/* Spacer to push buttons to bottom */}
+      <div className="flex-1"></div>
+
       {/* Action Buttons */}
-      <div className="flex gap-2 pt-4 border-t border-gray-100">
+      <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
         <Button
           variant="default"
-          className="flex-1 bg-gray-900 hover:bg-gray-800"
+          className="flex-1 bg-gray-900 hover:bg-gray-800 h-10"
           onClick={handleViewDetails}
         >
           View Details
@@ -165,7 +168,7 @@ export const ScholarshipCard = ({
           variant="outline"
           size="icon"
           className={cn(
-            'border-gray-300',
+            'border-gray-300 h-10 w-10',
             saved && 'bg-purple-50 border-purple-300'
           )}
           onClick={handleSave}
@@ -182,7 +185,7 @@ export const ScholarshipCard = ({
           <Button
             variant="outline"
             size="icon"
-            className="border-gray-300"
+            className="border-gray-300 h-10 w-10"
             onClick={handleOfficialSite}
           >
             <ExternalLink className="w-4 h-4 text-gray-600" />

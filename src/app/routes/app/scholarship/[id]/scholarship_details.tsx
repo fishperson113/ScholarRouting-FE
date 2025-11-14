@@ -355,7 +355,7 @@ const ScholarshipDetailsRoute = () => {
 
             {activeTab === 'requirements' && (
               <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Similar Scholarships</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Other Requirements</h2>
                 <div className="text-gray-700 whitespace-pre-line leading-relaxed">
                   {getField('Other_Requirements', 'No description available.')}
                 </div>
