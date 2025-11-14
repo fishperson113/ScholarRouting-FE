@@ -273,8 +273,8 @@ export function Chatbot() {
                       <h3 className="text-lg font-bold text-gray-900">Basic</h3>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">Free</div>
-                      <div className="text-xs text-gray-500">0 VND/month</div>
+                      <div className="text-3xl font-bold text-gray-900">Free</div>
+                      <div className="text-sm text-gray-500">0 VND/month</div>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">
@@ -283,7 +283,7 @@ export function Chatbot() {
                   <div className="space-y-1">
                     <div className="flex items-center text-sm text-gray-700">
                       <Check className="w-4 h-4 text-green-600 mr-2" />
-                      <span>Limited number of queries</span>
+                      <span>Limited to 10 queries</span>
                     </div>
                   </div>
                 </div>
@@ -310,8 +310,8 @@ export function Chatbot() {
                       <h3 className="text-lg font-bold text-gray-900">Pro</h3>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-purple-600">119.000₫</div>
-                      <div className="text-xs text-gray-500">/month</div>
+                      <div className="text-3xl font-bold text-purple-600">130.000₫</div>
+                      <div className="text-sm font-semibold text-purple-500">($5) /month</div>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">

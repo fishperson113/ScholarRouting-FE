@@ -111,7 +111,7 @@ export const LandingNav = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center justify-center flex-1 gap-12">
             {isAuthenticated ? (
               <>
                 <Link
