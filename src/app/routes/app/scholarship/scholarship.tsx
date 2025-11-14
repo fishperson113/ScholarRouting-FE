@@ -71,7 +71,7 @@ const ScholarshipRoute = () => {
         </div>
         
         <div className="text-sm text-gray-600">
-          <strong>{scholarships.length}</strong> scholarships found
+          <strong>{total}</strong> scholarships found
         </div>
       </div>
 

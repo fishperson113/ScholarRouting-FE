@@ -82,32 +82,9 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
       // Handle the response - the API returns { total, hits, took }
       // Each hit might have different structures, so we normalize it
       const resultData = result as any;
-      let items = resultData?.items || resultData?.hits || [];
+      const items = resultData?.items || resultData?.hits || [];
       
-      console.log('Extracted items before filtering:', items);
-      
-      // Client-side filtering for comma-separated fields
-      // This handles cases where Eligible_Field_Group contains multiple values separated by commas
-      if (filters.fieldOfStudy && items.length > 0) {
-        const selectedField = filters.fieldOfStudy;
-        items = items.filter((item: any) => {
-          const eligibleFieldGroup = item?.Eligible_Field_Group || item?.eligible_field_group || '';
-          if (!eligibleFieldGroup) return false;
-          
-          // Split by comma and trim each value
-          const fields = eligibleFieldGroup.split(',').map((f: string) => f.trim());
-          
-          // Check if any field matches the selected filter
-          return fields.some((field: string) => 
-            field.toLowerCase() === selectedField.toLowerCase() ||
-            field.toLowerCase().includes(selectedField.toLowerCase())
-          );
-        });
-        
-        console.log(`Filtered items by fieldOfStudy "${selectedField}":`, items.length);
-      }
-      
-      console.log('Final items:', items);
+      console.log('Extracted items:', items);
       
       // Either append to existing scholarships or replace them
       if (append) {
@@ -116,11 +93,11 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
         setScholarships(items);
       }
       
-      // Update total to reflect filtered count
-      setTotal(items.length);
+      setTotal(resultData?.total || 0);
       
-      // For client-side filtering, we've loaded all available items
-      setHasMore(false);
+      // Check if there are more items to load
+      const newTotalLoaded = append ? scholarships.length + items.length : items.length;
+      setHasMore(newTotalLoaded < (resultData?.total || 0));
       
     } catch (err) {
       const error = err as Error;
