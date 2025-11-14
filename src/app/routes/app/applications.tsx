@@ -123,8 +123,8 @@ const ApplicationsRoute = () => {
       return {
         id: app.scholarship_id,
         scholarshipName: scholarshipName,
-        institution: app.institution || 'Unknown Institution',
-        location: app.location || 'Unknown Location',
+        // institution: app.institution || 'Unknown Institution',
+        // location: app.location || 'Unknown Location',
         status: validStatus,
         deadline: formattedDeadline,
         isUrgent,
@@ -371,9 +371,6 @@ const ApplicationsRoute = () => {
                       <td className="px-6 py-4">
                         <div>
                           <div className="font-medium text-gray-900">{app.scholarshipName}</div>
-                          <div className="text-sm text-gray-500">
-                            {app.institution} • {app.location}
-                          </div>
                         </div>
                       </td>
 

@@ -3,7 +3,6 @@ import { ArrowLeft, MapPin, Calendar, DollarSign, Users, Bookmark, ExternalLink,
 import { useState, useEffect } from 'react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
-import { Chatbot } from '@/components/chatbot';
 
 type TabType = 'overview' | 'eligibility' | 'documents' | 'funding' | 'requirements';
 
@@ -366,8 +365,6 @@ const ScholarshipDetailsRoute = () => {
         </div>
       </div>
 
-      {/* Chatbot */}
-      <Chatbot />
     </div>
   );
 };
