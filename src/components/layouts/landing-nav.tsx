@@ -129,12 +129,6 @@ export const LandingNav = () => {
                   📄 My Applications
                 </Link>
                 <Link
-                  to={paths.app.deadlines.getHref()}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  📅 Deadlines
-                </Link>
-                <Link
                   to={paths.app.profile.getHref()}
                   className="text-gray-600 hover:text-gray-900 transition-colors"
                 >
@@ -160,15 +154,6 @@ export const LandingNav = () => {
                   className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
                 >
                   📄 My Applications
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthDialogOpen(true);
-                  }}
-                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                >
-                  📅 Deadlines
                 </button>
                 <button
                   onClick={() => {
@@ -306,13 +291,6 @@ export const LandingNav = () => {
                   📄 My Applications
                 </Link>
                 <Link
-                  to={paths.app.deadlines.getHref()}
-                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  📅 Deadlines
-                </Link>
-                <Link
                   to={paths.app.profile.getHref()}
                   className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -341,16 +319,6 @@ export const LandingNav = () => {
                   className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
                 >
                   📄 My Applications
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthDialogOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-                >
-                  📅 Deadlines
                 </button>
                 <button
                   onClick={() => {
