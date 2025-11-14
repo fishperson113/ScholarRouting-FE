@@ -134,16 +134,6 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 📄 My Applications
               </Link>
               <Link
-                to={paths.app.deadlines.getHref()}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActiveLink(paths.app.deadlines.getHref())
-                    ? 'text-purple-600 bg-purple-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                📅 Deadlines
-              </Link>
-              <Link
                 to={paths.app.profile.getHref()}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActiveLink(paths.app.profile.getHref())
