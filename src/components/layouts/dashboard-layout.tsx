@@ -1,4 +1,4 @@
-import { PanelLeft, User2, GraduationCap, FileText, Calendar } from 'lucide-react';
+import { PanelLeft, User2, GraduationCap, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useNavigation } from 'react-router';
 
@@ -83,7 +83,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const navigation = [
     { name: 'Scholarships', to: paths.app.scholarships.getHref(), icon: GraduationCap },
     { name: 'My Applications', to: paths.app.applications.getHref(), icon: FileText },
-    { name: 'Deadlines', to: paths.app.deadlines.getHref(), icon: Calendar },
     { name: 'Profile', to: paths.app.profile.getHref(), icon: User2 },
   ].filter(Boolean) as SideNavigationItem[];
 
