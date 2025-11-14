@@ -1,12 +1,94 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { env } from '@/config/env';
 
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+}
+
+// Component to render formatted scholarship text
+function FormattedScholarshipMessage({ text }: { text: string }) {
+  const lines = text.split('\n');
+  const elements: JSX.Element[] = [];
+  let scholarshipNumber = 0;
+  let keyIndex = 0;
+
+  lines.forEach((line) => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) return;
+
+    // Check if line contains a scholarship name (with or without number and **)
+    const scholarshipMatch = trimmedLine.match(/^(?:\d+\.\s*)?\*\*(.+?)\*\*\s*\((.+?)\)/);
+    const simpleScholarshipMatch = trimmedLine.match(/^(?:\d+\.\s*)?\*\*(.+?)\*\*/);
+    
+    if (scholarshipMatch) {
+      // Scholarship name with location (e.g., "**Name** (Country)")
+      scholarshipNumber++;
+      elements.push(
+        <div key={`scholarship-${keyIndex++}`} className="mb-2 mt-3">
+          <div className="font-bold text-gray-900">
+            {scholarshipNumber}. {scholarshipMatch[1]} ({scholarshipMatch[2]})
+          </div>
+        </div>
+      );
+    } else if (simpleScholarshipMatch) {
+      // Simple scholarship name (e.g., "**Name**")
+      scholarshipNumber++;
+      elements.push(
+        <div key={`scholarship-${keyIndex++}`} className="mb-2 mt-3">
+          <div className="font-bold text-gray-900">
+            {scholarshipNumber}. {simpleScholarshipMatch[1]}
+          </div>
+        </div>
+      );
+    } else if (trimmedLine.startsWith('*') && trimmedLine.includes(':')) {
+      // Attribute line starting with * (e.g., "* **Benefits:** content")
+      // Remove leading * and **
+      const cleanLine = trimmedLine.replace(/^\*\s*\*\*/, '').replace(/\*\*/, '');
+      const colonIndex = cleanLine.indexOf(':');
+      
+      if (colonIndex > -1) {
+        const attributeName = cleanLine.substring(0, colonIndex).trim();
+        const attributeContent = cleanLine.substring(colonIndex + 1).trim();
+        
+        elements.push(
+          <div key={`attr-${keyIndex++}`} className="mb-1 text-sm ml-2">
+            <span className="font-bold">{attributeName}:</span>
+            {attributeContent && <span> {attributeContent}</span>}
+          </div>
+        );
+      }
+    } else if (trimmedLine.includes('**') && trimmedLine.includes(':')) {
+      // Attribute line with ** markers (e.g., "**Benefits:** content")
+      const cleanLine = trimmedLine.replace(/\*\*/g, '');
+      const colonIndex = cleanLine.indexOf(':');
+      
+      if (colonIndex > -1) {
+        const attributeName = cleanLine.substring(0, colonIndex).trim();
+        const attributeContent = cleanLine.substring(colonIndex + 1).trim();
+        
+        elements.push(
+          <div key={`attr-${keyIndex++}`} className="mb-1 text-sm">
+            <span className="font-bold">{attributeName}:</span>
+            {attributeContent && <span> {attributeContent}</span>}
+          </div>
+        );
+      }
+    } else {
+      // Regular text line
+      elements.push(
+        <div key={`text-${keyIndex++}`} className="mb-1 text-sm">
+          {trimmedLine}
+        </div>
+      );
+    }
+  });
+
+  return <div className="space-y-0.5">{elements}</div>;
 }
 
 export function Chatbot() {
@@ -21,7 +103,10 @@ export function Chatbot() {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [isThinking, setIsThinking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const currentQueryRef = useRef<string>('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -31,29 +116,93 @@ export function Chatbot() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleStop = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsThinking(false);
+    
+    // Restore the original query to the input field for editing
+    setInputValue(currentQueryRef.current);
+    currentQueryRef.current = '';
+    
+    // Add a message indicating the request was stopped
+    const stopMessage: Message = {
+      id: Date.now().toString(),
+      text: 'Request stopped by user.',
+      sender: 'bot',
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, stopMessage]);
+  };
 
-    const newMessage: Message = {
+  const handleSend = async () => {
+    if (!inputValue.trim() || isThinking) return;
+
+    const userMessage: Message = {
       id: Date.now().toString(),
       text: inputValue,
       sender: 'user',
       timestamp: new Date(),
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, userMessage]);
+    const query = inputValue;
+    currentQueryRef.current = query; // Store the query for potential restoration
     setInputValue('');
+    setIsThinking(true);
 
-    // Simulate bot response
-    setTimeout(() => {
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+
+    try {
+      // Send POST request to chatbot API
+      const response = await fetch(`${env.API_URL}/chatbot/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from chatbot');
+      }
+
+      const data = await response.json();
+
+      // Add bot response with the answer from API
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Cool! What's your email address then?",
+        text: data.answer || 'Sorry, I could not process your request.',
         sender: 'bot',
         timestamp: new Date(),
       };
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    } catch (error: any) {
+      // Check if error is due to abort
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        return;
+      }
+      
+      console.error('Error sending message to chatbot:', error);
+      
+      // Show error message to user
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Sorry, I encountered an error. Please try again later.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsThinking(false);
+      abortControllerRef.current = null;
+      currentQueryRef.current = ''; // Clear the stored query after completion
+    }
   };
 
   const handleQuickReply = (reply: string) => {
@@ -84,7 +233,7 @@ export function Chatbot() {
       <div
         className={cn(
           'bg-white rounded-lg shadow-2xl transition-all duration-300',
-          isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]',
+          isMinimized ? 'w-80 h-16' : 'w-[460px] h-[600px]',
           'flex flex-col'
         )}
       >
@@ -149,10 +298,30 @@ export function Chatbot() {
                         : 'bg-white text-gray-800 shadow-sm'
                     )}
                   >
-                    {message.text}
+                    {message.sender === 'bot' ? (
+                      <FormattedScholarshipMessage text={message.text} />
+                    ) : (
+                      message.text
+                    )}
                   </div>
                 </div>
               ))}
+
+              {/* Thinking indicator */}
+              {isThinking && (
+                <div className="flex justify-start">
+                  <div className="bg-white text-gray-800 shadow-sm rounded-lg p-3 text-sm">
+                    <div className="flex items-center space-x-1">
+                      <span>Thinking</span>
+                      <span className="flex space-x-1">
+                        <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
+                        <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
+                        <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Quick Reply Buttons */}
               {messages.length === 1 && (
@@ -194,17 +363,27 @@ export function Chatbot() {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                   placeholder="Enter your message..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
-                <button
-                  onClick={handleSend}
-                  className="p-3 bg-blue-900 text-white rounded-full hover:bg-blue-800 transition-colors"
-                  aria-label="Send"
-                >
-                  <Send className="w-5 h-5" />
-                </button>
+                {isThinking ? (
+                  <button
+                    onClick={handleStop}
+                    className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                    aria-label="Stop"
+                  >
+                    <div className="w-3 h-3 bg-white rounded-sm" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleSend}
+                    className="p-3 bg-blue-900 text-white rounded-full hover:bg-blue-800 transition-colors"
+                    aria-label="Send"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </div>
           </>
