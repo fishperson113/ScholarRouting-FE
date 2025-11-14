@@ -1,1 +1,1 @@
-export { Chatbot } from './chatbot';
+export { Chatbot } from './chatbot_overview';
