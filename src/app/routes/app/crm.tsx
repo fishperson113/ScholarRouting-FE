@@ -68,3 +68,5 @@ export const CrmRoute = () => {
     </Authorization>
   );
 };
+
+export default CrmRoute;

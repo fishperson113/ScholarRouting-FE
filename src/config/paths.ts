@@ -38,4 +38,23 @@ export const paths = {
       getHref: () => '/crm',
     },
   },
+
+  admin: {
+    root: {
+      path: 'admin',
+      getHref: () => '/admin',
+    },
+    dashboard: {
+      path: 'admin/dashboard',
+      getHref: () => '/admin/dashboard',
+    },
+    conversations: {
+      path: 'admin/conversations',
+      getHref: () => '/admin/conversations',
+    },
+    conversationDetail: {
+      path: 'admin/conversations/:id',
+      getHref: (id: string) => `/admin/conversations/${id}`,
+    },
+  },
 } as const;
