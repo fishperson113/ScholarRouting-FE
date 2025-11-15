@@ -2,6 +2,8 @@ import { useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import type { ScholarshipCardProps } from '@/features/scholarships/components/scholarship-card';
 import { paths } from '@/config/paths';
+import { useScholarshipApplications } from '@/lib/scholarship-api';
+import { useUser } from '@/lib/auth';
 
 interface RawScholarship {
   id?: string;
@@ -42,6 +44,17 @@ interface RawScholarship {
 
 export const useScholarshipCard = (scholarships: RawScholarship[]) => {
   const navigate = useNavigate();
+  const user = useUser();
+  const uid = user.data?.uid;
+  
+  // Fetch user's applications to check which scholarships are saved
+  const { data: applicationsData } = useScholarshipApplications(uid);
+  
+  // Create a Set of saved scholarship IDs for quick lookup
+  const savedScholarshipIds = useMemo(() => {
+    if (!applicationsData?.applications) return new Set<string>();
+    return new Set(applicationsData.applications.map(app => app.scholarship_id));
+  }, [applicationsData]);
   
   // Transform raw scholarship data to card props
   const transformedScholarships = useMemo(() => {
@@ -144,6 +157,7 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
           deadline,
           requirements: requirements.slice(0, 3), // Limit to 3 requirements
           isUrgent,
+          isSaved: savedScholarshipIds.has(id), // Check if this scholarship is saved
           officialUrl,
         });
       } catch (error) {
@@ -153,7 +167,7 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
     
     console.log('Transformed result:', results.length, 'scholarships');
     return results;
-  }, [scholarships]);
+  }, [scholarships, savedScholarshipIds]);
 
   // Handle save action
   const handleSave = useCallback((scholarshipId: string) => {
