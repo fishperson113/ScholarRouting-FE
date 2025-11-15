@@ -28,7 +28,7 @@ const ScholarshipDetailsRoute = () => {
       setError(null);
 
       try {
-        const collection = 'scholarships_212'; // Default collection
+        const collection = 'scholarships_403'; // Default collection
         const url = `${env.API_URL}/firestore/${collection}/${id}`;
         console.log('Fetching scholarship from:', url);
 

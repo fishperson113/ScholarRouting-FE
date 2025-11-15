@@ -14,7 +14,7 @@ interface UseScholarshipsOptions {
 }
 
 export const useScholarships = (options?: UseScholarshipsOptions) => {
-  const { collection = 'scholarships_212', initialPageSize = 20, onError } = options || {};
+  const { collection = 'scholarships_403', initialPageSize = 20, onError } = options || {};
   const { error: showError } = useToast();
 
   const [searchQuery, setSearchQuery] = useState('');

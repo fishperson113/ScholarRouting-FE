@@ -7,7 +7,7 @@ import { ScholarshipCard } from '@/features/scholarships/components';
  */
 export const ScholarshipDebug = () => {
   const { scholarships: rawData, isLoading, total } = useScholarships({
-    collection: 'scholarships_212',
+    collection: 'scholarships_403',
     initialPageSize: 5, // Fetch just 5 for testing
   });
 
