@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, DollarSign, Bookmark, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/cn';
+import { useUser } from '@/lib/auth';
+import { useAddScholarshipApplication, useDeleteScholarshipApplication } from '@/lib/scholarship-api';
+import { useToast } from '@/hooks/use-toast';
 
 export interface ScholarshipCardProps {
   id: string;
@@ -37,10 +40,69 @@ export const ScholarshipCard = ({
   onViewDetails,
 }: ScholarshipCardProps) => {
   const [saved, setSaved] = useState(isSaved);
+  const user = useUser();
+  const uid = user.data?.uid;
+  const { success, error } = useToast();
+  
+  const addApplicationMutation = useAddScholarshipApplication();
+  const deleteApplicationMutation = useDeleteScholarshipApplication();
 
-  const handleSave = () => {
-    setSaved(!saved);
-    onSave?.(id);
+  // Sync saved state with isSaved prop
+  useEffect(() => {
+    setSaved(isSaved);
+  }, [isSaved]);
+
+  const handleSave = async () => {
+    if (!uid) {
+      error({
+        title: 'Authentication Required',
+        message: 'Please log in to save scholarships',
+      });
+      return;
+    }
+
+    try {
+      if (saved) {
+        // Delete application
+        await deleteApplicationMutation.mutateAsync({
+          uid,
+          scholarshipId: id,
+        });
+        setSaved(false);
+        success({
+          title: 'Scholarship Removed',
+          message: `${title} has been removed from your applications`,
+        });
+      } else {
+        // Add application
+        await addApplicationMutation.mutateAsync({
+          uid,
+          application: {
+            scholarship_id: id,
+            name: title,
+            applied_date: new Date().toISOString(),
+            status: 'submitted',
+            notes: '',
+          },
+        });
+        setSaved(true);
+        success({
+          title: 'Scholarship Saved',
+          message: `${title} has been added to your applications`,
+        });
+      }
+      
+      // Call the optional onSave callback
+      onSave?.(id);
+    } catch (err) {
+      console.error('Failed to update application:', err);
+      // Revert the optimistic update on error
+      setSaved(saved);
+      error({
+        title: 'Failed to Update',
+        message: err instanceof Error ? err.message : 'An error occurred while updating the scholarship',
+      });
+    }
   };
 
   const handleViewDetails = () => {
@@ -172,6 +234,7 @@ export const ScholarshipCard = ({
             saved && 'bg-purple-50 border-purple-300'
           )}
           onClick={handleSave}
+          disabled={addApplicationMutation.isPending || deleteApplicationMutation.isPending}
         >
           <Bookmark
             className={cn(

@@ -25,15 +25,18 @@ export type ScholarshipInterest = {
 
 export type ScholarshipApplication = {
   scholarship_id: string;
+  name: string;
+  applied_date: string;
+  status: 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
+  notes: string;
+  // Optional fields that may be returned from API
   scholarship_name?: string;
   institution?: string;
   location?: string;
   application_date?: string;
   deadline?: string;
-  status?: 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
   amount?: string;
   documents_submitted?: string[];
-  notes?: string;
   [key: string]: any;
 };
 

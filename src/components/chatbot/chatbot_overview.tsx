@@ -259,17 +259,67 @@ export function Chatbot() {
 
   if (!isOpen) {
     return (
-      <button
-        onClick={() => {
-          setIsOpen(true);
-          setShowPlanSelection(true);
-        }}
-        className="fixed right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 z-50"
-        style={{ bottom: 'calc(1.5rem + 30px)' }}
-        aria-label="Open chat"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </button>
+      <div className="fixed right-6 z-50 group" style={{ bottom: 'calc(1.5rem + 30px)' }}>
+        {/* Tooltip */}
+        <div className="absolute bottom-20 right-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
+          <div className="bg-white px-6 py-5 rounded-3xl shadow-xl border border-gray-100 min-w-[320px]">
+            <div className="flex items-start gap-3 mb-6">
+              <div className="w-16 h-16 rounded-full border-4 border-red-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <img src="/Logo.png" alt="ScholarBot Logo" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1">
+                <div className="text-blue-500 font-semibold text-lg mb-2">ScholarBot Chat</div>
+                <div className="text-gray-600 text-sm leading-relaxed">
+                  👋 Hi, I am your assistant to help you choose suitable scholarships
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3 flex flex-col items-end">
+              <button
+                onClick={() => {
+                  setIsOpen(true);
+                  setShowPlanSelection(true);
+                }}
+                className="py-2.5 px-6 bg-white hover:bg-purple-600 text-purple-600 hover:text-white border-2 border-purple-600 hover:border-purple-600 text-sm font-medium rounded-full transition-all duration-200 pointer-events-auto"
+              >
+                Schedule a consultation
+              </button>
+              <button
+                onClick={() => {
+                  setIsOpen(true);
+                  setShowPlanSelection(true);
+                }}
+                className="py-2.5 px-6 bg-white hover:bg-purple-600 text-purple-600 hover:text-white border-2 border-purple-600 hover:border-purple-600 text-sm font-medium rounded-full transition-all duration-200 pointer-events-auto"
+              >
+                Contact for a quote
+              </button>
+              <button
+                onClick={() => {
+                  setIsOpen(true);
+                  setShowPlanSelection(true);
+                }}
+                className="py-2.5 px-6 bg-white hover:bg-purple-600 text-purple-600 hover:text-white border-2 border-purple-600 hover:border-purple-600 text-sm font-medium rounded-full transition-all duration-200 pointer-events-auto"
+              >
+                Consultation support
+              </button>
+            </div>
+            {/* Arrow pointing down to the button */}
+            <div className="absolute bottom-[-8px] right-6 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-white"></div>
+            <div className="absolute bottom-[-9px] right-6 w-0 h-0 border-l-[9px] border-l-transparent border-r-[9px] border-r-transparent border-t-[9px] border-t-gray-100"></div>
+          </div>
+        </div>
+        
+        <button
+          onClick={() => {
+            setIsOpen(true);
+            setShowPlanSelection(true);
+          }}
+          className="w-14 h-14 bg-purple-600 hover:bg-purple-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110"
+          aria-label="Open chat"
+        >
+          <MessageCircle className="w-6 h-6" />
+        </button>
+      </div>
     );
   }
 
