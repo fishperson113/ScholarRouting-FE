@@ -52,7 +52,7 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
   const elements: JSX.Element[] = [];
   let keyIndex = 0;
 
-  lines.forEach((line, lineIndex) => {
+  lines.forEach((line) => {
     const trimmedLine = line.trim();
     if (!trimmedLine) return;
 
@@ -61,12 +61,26 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
       // Remove the leading * and trim
       const content = trimmedLine.substring(1).trim();
       
-      elements.push(
-        <div key={`line-${keyIndex++}`} className="mb-1 text-sm ml-4 flex">
-          <span className="mr-2">•</span>
-          <span className="flex-1">{parseInlineMarkdown(content)}</span>
-        </div>
-      );
+      // Check if this is a scholarship name (contains bold text at the start)
+      const isScholarshipName = content.match(/^\*\*[^*]+\*\*/);
+      
+      if (isScholarshipName) {
+        // This is a scholarship name - use bullet
+        elements.push(
+          <div key={`line-${keyIndex++}`} className="mb-2 mt-3 text-sm flex">
+            <span className="mr-2">•</span>
+            <span className="flex-1">{parseInlineMarkdown(content)}</span>
+          </div>
+        );
+      } else {
+        // This is a detail line - use bullet with left margin indentation (sub-list style)
+        elements.push(
+          <div key={`line-${keyIndex++}`} className="mb-1 text-sm ml-6 flex">
+            <span className="mr-2">•</span>
+            <span className="flex-1">{parseInlineMarkdown(content)}</span>
+          </div>
+        );
+      }
     } else {
       // Regular text line with inline markdown support
       elements.push(
@@ -95,9 +109,11 @@ export function Chatbot() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentQueryRef = useRef<string>('');
+  const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -112,7 +128,12 @@ export function Chatbot() {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
     }
+    if (loadingIntervalRef.current) {
+      clearInterval(loadingIntervalRef.current);
+      loadingIntervalRef.current = null;
+    }
     setIsThinking(false);
+    setLoadingStage(0);
     
     // Restore the original query to the input field for editing
     setInputValue(currentQueryRef.current);
@@ -148,9 +169,18 @@ export function Chatbot() {
     currentQueryRef.current = query; // Store the query for potential restoration
     setInputValue('');
     setIsThinking(true);
+    setLoadingStage(1);
 
     // Create new AbortController for this request
     abortControllerRef.current = new AbortController();
+
+    // Progressive loading stages
+    loadingIntervalRef.current = setInterval(() => {
+      setLoadingStage(prev => {
+        if (prev < 4) return prev + 1;
+        return prev;
+      });
+    }, 3000); // Change stage every 3 seconds
 
     try {
       // Send POST request to chatbot API with plan information
@@ -172,6 +202,12 @@ export function Chatbot() {
 
       const data = await response.json();
 
+      // Clear loading interval when response is received
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+        loadingIntervalRef.current = null;
+      }
+
       // Add bot response with the answer from API
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -181,6 +217,12 @@ export function Chatbot() {
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error: any) {
+      // Clear loading interval on error
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+        loadingIntervalRef.current = null;
+      }
+
       // Check if error is due to abort
       if (error.name === 'AbortError') {
         console.log('Request was aborted');
@@ -199,6 +241,7 @@ export function Chatbot() {
       setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsThinking(false);
+      setLoadingStage(0);
       abortControllerRef.current = null;
       currentQueryRef.current = ''; // Clear the stored query after completion
     }
@@ -446,12 +489,17 @@ export function Chatbot() {
                 </div>
               ))}
 
-              {/* Thinking indicator */}
+              {/* Thinking indicator with progressive stages */}
               {isThinking && (
                 <div className="flex justify-start">
                   <div className="bg-white text-gray-800 shadow-sm rounded-lg p-3 text-sm">
                     <div className="flex items-center space-x-1">
-                      <span>Thinking</span>
+                      <span>
+                        {loadingStage === 1 && 'Parsing filter user query'}
+                        {loadingStage === 2 && 'Querying DB vector'}
+                        {loadingStage === 3 && 'Filtering results'}
+                        {loadingStage === 4 && 'Generating final results'}
+                      </span>
                       <span className="flex space-x-1">
                         <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
                         <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>

@@ -31,7 +31,7 @@ export const RoleSelectionDialog = ({ isOpen, onClose, onRoleSelect }: RoleSelec
     {
       id: 'bachelor' as UserRole,
       title: 'Bachelor',
-      description: 'I have a bachelor degree',
+      description: 'I am interested in finding Master or Phd scholarship',
       icon: Building2,
       color: 'purple',
     },

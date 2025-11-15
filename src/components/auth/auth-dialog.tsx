@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 import {
   Dialog,
@@ -12,6 +13,7 @@ import { paths } from '@/config/paths';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { RegisterForm } from '@/features/auth/components/register-form';
 import { RoleSelectionDialog } from './role-selection-dialog';
+import { auth, db } from '@/lib/firebase';
 
 type AuthDialogProps = {
   isOpen: boolean;
@@ -40,13 +42,46 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }
     // Invalidate user query to force refetch
     await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
     
-    // Show role selection dialog
-    setShowRoleSelection(true);
+    // Check if user already has a role saved
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+        const userData = userDoc.data();
+        
+        // Only show role selection if user doesn't have a role
+        if (!userData?.role) {
+          setShowRoleSelection(true);
+        } else {
+          // User already has a role, navigate directly
+          navigate(paths.app.scholarships.getHref(), { replace: true });
+          onSuccess?.();
+        }
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        // On error, show role selection to be safe
+        setShowRoleSelection(true);
+      }
+    }
   };
 
-  const handleRoleSelect = (role: string) => {
+  const handleRoleSelect = async (role: string) => {
     console.log('User selected role:', role);
-    // TODO: Save role to user profile in Firestore
+    
+    // Save role to user profile in Firestore
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      try {
+        await setDoc(
+          doc(db, 'users', currentUser.uid),
+          { role, roleSelectedAt: new Date().toISOString() },
+          { merge: true }
+        );
+        console.log('Role saved successfully');
+      } catch (error) {
+        console.error('Error saving role:', error);
+      }
+    }
     
     // Navigate to scholarships page
     navigate(paths.app.scholarships.getHref(), { replace: true });
