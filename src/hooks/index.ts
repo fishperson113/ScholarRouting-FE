@@ -14,9 +14,6 @@ export { useRealtimeMessages } from './use-realtime-messages';
 // CRM hooks
 export * from './use-crm';
 
-// User profile hooks
-export { useUserProfile, useUpdateProfile } from '@/lib/user-api';
-
 // Scholarship interests & applications
 export {
   useScholarshipInterests,

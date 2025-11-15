@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings, Check, Zap, Sparkles, History } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
+import { useUser } from '@/lib/auth';
 
 type ChatbotPlan = 'basic' | 'pro';
 
@@ -95,6 +96,7 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
 }
 
 export function Chatbot() {
+  const user = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [showPlanSelection, setShowPlanSelection] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<ChatbotPlan | null>(null);
@@ -183,7 +185,7 @@ export function Chatbot() {
     }, 3000); // Change stage every 3 seconds
 
     try {
-      // Send POST request to chatbot API with plan information
+      // Send POST request to chatbot API with plan information and user_id
       const response = await fetch(`${env.API_URL}/chatbot/ask`, {
         method: 'POST',
         headers: {
@@ -191,7 +193,8 @@ export function Chatbot() {
         },
         body: JSON.stringify({ 
           query,
-          plan: selectedPlan 
+          plan: selectedPlan,
+          user_id: user.data?.uid || null // Pass user ID for chat history storage
         }),
         signal: abortControllerRef.current.signal,
       });

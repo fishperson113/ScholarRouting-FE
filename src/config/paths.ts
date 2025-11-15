@@ -25,10 +25,6 @@ export const paths = {
       path: 'deadlines',
       getHref: () => '/deadlines',
     },
-    users: {
-      path: 'users',
-      getHref: () => '/users',
-    },
     profile: {
       path: 'profile',
       getHref: () => '/profile',
