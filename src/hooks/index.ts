@@ -8,6 +8,12 @@ export { useToast } from './use-toast';
 export { useScholarships } from './use-scholarships';
 export { useScholarshipCard } from './use-scholarship-card';
 
+// Admin hooks
+export { useRealtimeMessages } from './use-realtime-messages';
+
+// CRM hooks
+export * from './use-crm';
+
 // User profile hooks
 export { useUserProfile, useUpdateProfile } from '@/lib/user-api';
 

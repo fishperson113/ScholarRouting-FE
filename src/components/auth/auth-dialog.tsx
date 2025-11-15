@@ -14,6 +14,7 @@ import { LoginForm } from '@/features/auth/components/login-form';
 import { RegisterForm } from '@/features/auth/components/register-form';
 import { RoleSelectionDialog } from './role-selection-dialog';
 import { auth, db } from '@/lib/firebase';
+import { getRedirectPath, isAdmin } from '@/lib/authorization';
 
 type AuthDialogProps = {
   isOpen: boolean;
@@ -42,26 +43,35 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }
     // Invalidate user query to force refetch
     await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
     
-    // Check if user already has a role saved
     const currentUser = auth.currentUser;
-    if (currentUser) {
-      try {
-        const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-        const userData = userDoc.data();
-        
-        // Only show role selection if user doesn't have a role
-        if (!userData?.role) {
-          setShowRoleSelection(true);
-        } else {
-          // User already has a role, navigate directly
-          navigate(paths.app.scholarships.getHref(), { replace: true });
-          onSuccess?.();
-        }
-      } catch (error) {
-        console.error('Error checking user role:', error);
-        // On error, show role selection to be safe
+    if (!currentUser) return;
+    
+    // Check if user is admin - skip role selection and navigate directly
+    if (isAdmin(currentUser)) {
+      const redirectPath = getRedirectPath(currentUser);
+      navigate(redirectPath, { replace: true });
+      onSuccess?.();
+      return;
+    }
+    
+    // For regular users, check if they have a role saved
+    try {
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      const userData = userDoc.data();
+      
+      if (!userData?.role) {
+        // Show role selection for users without a role
         setShowRoleSelection(true);
+      } else {
+        // Navigate to scholarships for users with existing role
+        const redirectPath = getRedirectPath(currentUser);
+        navigate(redirectPath, { replace: true });
+        onSuccess?.();
       }
+    } catch (error) {
+      console.error('Error checking user role:', error);
+      // On error, show role selection to be safe
+      setShowRoleSelection(true);
     }
   };
 
@@ -83,8 +93,9 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }
       }
     }
     
-    // Navigate to scholarships page
-    navigate(paths.app.scholarships.getHref(), { replace: true });
+    // Navigate based on user role
+    const redirectPath = getRedirectPath(currentUser);
+    navigate(redirectPath, { replace: true });
     
     // Call parent's onSuccess if provided
     onSuccess?.();

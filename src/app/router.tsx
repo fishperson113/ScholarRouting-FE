@@ -5,11 +5,13 @@ import { RouterProvider } from 'react-router/dom';
 
 import { paths } from '@/config/paths';
 import { ProtectedRoute } from '@/lib/auth';
+import { AdminRoute } from '@/lib/admin-auth';
 
 import {
   default as AppRoot,
   ErrorBoundary as AppRootErrorBoundary,
 } from './routes/app/root';
+import AdminRoot from './routes/admin/root';
 
 const convert = (queryClient: QueryClient) => (m: any) => {
   const { clientLoader, clientAction, default: Component, ...rest } = m;
@@ -59,6 +61,39 @@ export const createAppRouter = (queryClient: QueryClient) =>
         {
           path: paths.app.profile.path,
           lazy: () => import('./routes/app/profile').then(convert(queryClient)),
+        },
+      ],
+    },
+    {
+      path: paths.app.crm.path,
+      element: (
+        <ProtectedRoute>
+          <AdminRoute>
+            <div />
+          </AdminRoute>
+        </ProtectedRoute>
+      ),
+      lazy: () => import('./routes/app/crm').then(convert(queryClient)),
+    },
+    {
+      path: paths.admin.root.path,
+      element: (
+        <AdminRoute>
+          <AdminRoot />
+        </AdminRoute>
+      ),
+      children: [
+        {
+          path: paths.admin.dashboard.path,
+          lazy: () => import('./routes/admin/dashboard').then(convert(queryClient)),
+        },
+        {
+          path: paths.admin.conversations.path,
+          lazy: () => import('./routes/admin/conversations').then(convert(queryClient)),
+        },
+        {
+          path: paths.admin.conversationDetail.path,
+          lazy: () => import('./routes/admin/conversation-detail').then(convert(queryClient)),
         },
       ],
     },
