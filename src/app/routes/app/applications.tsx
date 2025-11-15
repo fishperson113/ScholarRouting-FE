@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Search, ChevronDown, MoreHorizontal, Calendar, AlertTriangle, X } from 'lucide-react';
+import { Search, ChevronDown, MoreHorizontal, Calendar, AlertTriangle, X, Trash2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { useScholarshipApplications, useUpdateScholarshipApplication } from '@/lib/scholarship-api';
+import { useScholarshipApplications, useUpdateScholarshipApplication, useDeleteScholarshipApplication } from '@/lib/scholarship-api';
 import { useUser } from '@/lib/auth';
 import { Spinner } from '@/components/ui/spinner';
+import { useToast } from '@/hooks/use-toast';
 import type { ScholarshipApplication } from '@/types/scholarship';
 
 type ApplicationStatus = 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
@@ -72,6 +73,8 @@ const ApplicationsRoute = () => {
   const [openStatusDropdown, setOpenStatusDropdown] = useState<string | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
   
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -79,6 +82,7 @@ const ApplicationsRoute = () => {
   // Get current user
   const user = useUser();
   const uid = user.data?.uid;
+  const { success, error: showError } = useToast();
 
   // Debug logging
   useEffect(() => {
@@ -89,6 +93,7 @@ const ApplicationsRoute = () => {
   // Fetch applications from API - only when uid is available
   const { data: applicationsData, isLoading, error, refetch } = useScholarshipApplications(uid);
   const updateApplicationMutation = useUpdateScholarshipApplication();
+  const deleteApplicationMutation = useDeleteScholarshipApplication();
 
   // Debug logging for API response
   useEffect(() => {
@@ -166,6 +171,34 @@ const ApplicationsRoute = () => {
       setOpenStatusDropdown(null);
     } catch (error) {
       console.error('Failed to update application status:', error);
+    }
+  };
+
+  const handleDeleteClick = (app: Application) => {
+    setApplicationToDelete(app);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!uid || !applicationToDelete) return;
+    
+    try {
+      await deleteApplicationMutation.mutateAsync({
+        uid,
+        scholarshipId: applicationToDelete.id,
+      });
+      success({
+        title: 'Application Deleted',
+        message: `${applicationToDelete.scholarshipName} has been removed from your applications`,
+      });
+      setDeleteConfirmOpen(false);
+      setApplicationToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete application:', err);
+      showError({
+        title: 'Delete Failed',
+        message: err instanceof Error ? err.message : 'Failed to delete application',
+      });
     }
   };
 
@@ -446,8 +479,12 @@ const ApplicationsRoute = () => {
 
                       {/* Actions */}
                       <td className="px-6 py-4">
-                        <button className="p-1 hover:bg-gray-100 rounded transition-colors">
-                          <MoreHorizontal className="w-5 h-5 text-gray-400" />
+                        <button 
+                          onClick={() => handleDeleteClick(app)}
+                          className="p-2 hover:bg-red-50 rounded transition-colors group"
+                          title="Delete application"
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-600" />
                         </button>
                       </td>
                     </tr>
@@ -504,6 +541,52 @@ const ApplicationsRoute = () => {
                 className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmOpen && applicationToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            {/* Dialog Header */}
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">Delete Application</h2>
+            </div>
+
+            {/* Dialog Content */}
+            <div className="p-6">
+              <p className="text-gray-700 mb-2">
+                Are you sure you want to delete this application?
+              </p>
+              <p className="text-sm text-gray-600 font-medium">
+                {applicationToDelete.scholarshipName}
+              </p>
+              <p className="text-sm text-red-600 mt-4">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            {/* Dialog Footer */}
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setDeleteConfirmOpen(false);
+                  setApplicationToDelete(null);
+                }}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                disabled={deleteApplicationMutation.isPending}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={deleteApplicationMutation.isPending}
+              >
+                {deleteApplicationMutation.isPending ? 'Deleting...' : 'Delete'}
               </button>
             </div>
           </div>
