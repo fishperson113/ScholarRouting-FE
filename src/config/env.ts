@@ -4,6 +4,7 @@ const createEnv = () => {
   const EnvSchema = z.object({
     API_URL: z.string(),
     APP_URL: z.string().optional().default('http://localhost:3000'),
+    ADMIN_EMAIL: z.string().email().optional().default('admin@scholarrouting.com'),
     FIREBASE_API_KEY: z.string(),
     FIREBASE_AUTH_DOMAIN: z.string(),
     FIREBASE_PROJECT_ID: z.string(),
