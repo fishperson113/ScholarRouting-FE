@@ -564,9 +564,6 @@ const ApplicationsRoute = () => {
               <p className="text-sm text-gray-600 font-medium">
                 {applicationToDelete.scholarshipName}
               </p>
-              <p className="text-sm text-red-600 mt-4">
-                This action cannot be undone.
-              </p>
             </div>
 
             {/* Dialog Footer */}
