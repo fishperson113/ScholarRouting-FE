@@ -264,7 +264,7 @@ export function Chatbot() {
         <div className="absolute bottom-20 right-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
           <div className="bg-white px-6 py-5 rounded-3xl shadow-xl border border-gray-100 min-w-[320px]">
             <div className="flex items-start gap-3 mb-6">
-              <div className="w-16 h-16 rounded-full border-4 border-red-500 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
                 <img src="/Logo.png" alt="ScholarBot Logo" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
