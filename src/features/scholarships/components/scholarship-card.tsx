@@ -181,16 +181,18 @@ export const ScholarshipCard = ({
           />
         </Button>
         
-        {officialUrl && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="border-gray-300 h-10 w-10"
-            onClick={handleOfficialSite}
-          >
-            <ExternalLink className="w-4 h-4 text-gray-600" />
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="icon"
+          className={cn(
+            'border-gray-300 h-10 w-10',
+            !officialUrl && 'opacity-50 cursor-not-allowed'
+          )}
+          onClick={officialUrl ? handleOfficialSite : undefined}
+          disabled={!officialUrl}
+        >
+          <ExternalLink className="w-4 h-4 text-gray-600" />
+        </Button>
       </div>
     </div>
   );
