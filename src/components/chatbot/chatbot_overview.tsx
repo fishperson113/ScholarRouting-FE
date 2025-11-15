@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings, Check, Zap, Sparkles } from 'lucide-react';
+import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings, Check, Zap, Sparkles, History } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
 
@@ -441,6 +441,17 @@ export function Chatbot() {
               aria-label="Minimize"
             >
               <ChevronDown className={cn('w-5 h-5 transition-transform', isMinimized && 'rotate-180')} />
+            </button>
+            <button
+              onClick={() => {
+                // TODO: Implement chat history functionality
+                console.log('Show chat history');
+              }}
+              className="p-1 hover:bg-blue-700 rounded transition-colors"
+              aria-label="Chat History"
+              title="Chat History"
+            >
+              <History className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowPlanSelection(true)}
