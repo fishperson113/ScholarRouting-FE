@@ -33,5 +33,9 @@ export const paths = {
       path: 'profile',
       getHref: () => '/profile',
     },
+    crm: {
+      path: 'crm',
+      getHref: () => '/crm',
+    },
   },
 } as const;
