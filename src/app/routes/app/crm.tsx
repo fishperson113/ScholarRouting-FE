@@ -23,6 +23,17 @@ export const CrmRoute = () => {
   const { data: threads = [] } = useCrmThreads(statusFilter);
   const { data: conversation } = useCrmThread(selectedThreadId);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Show nothing while loading
   if (user.isLoading) {
     return null;
@@ -37,17 +48,6 @@ export const CrmRoute = () => {
   if (!isAdmin(user.data)) {
     return <Navigate to={paths.app.scholarships.getHref()} replace />;
   }
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const filteredThreads = threads.filter(thread => {
     const matchesSearch = thread.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
