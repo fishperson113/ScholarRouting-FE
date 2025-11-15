@@ -31,12 +31,17 @@ export const useFirebaseUser = () => {
   return useQuery({
     queryKey: ['firebase-user'],
     queryFn: () => new Promise<ExtendedFirebaseUser | null>((resolve) => {
+      // Wait for Firebase to restore the session
       const unsubscribe = onAuthStateChanged(auth, (user) => {
-        unsubscribe();
+        // Don't unsubscribe immediately - let it complete auth state restoration
         resolve(user as ExtendedFirebaseUser | null);
+        unsubscribe();
       });
     }),
     staleTime: Infinity,
+    // Prevent refetching while user is logged in
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 };
 

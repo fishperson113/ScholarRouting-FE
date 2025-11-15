@@ -62,11 +62,18 @@ export const createAppRouter = (queryClient: QueryClient) =>
           path: paths.app.profile.path,
           lazy: () => import('./routes/app/profile').then(convert(queryClient)),
         },
-        {
-          path: paths.app.crm.path,
-          lazy: () => import('./routes/app/crm').then(convert(queryClient)),
-        },
       ],
+    },
+    {
+      path: paths.app.crm.path,
+      element: (
+        <ProtectedRoute>
+          <AdminRoute>
+            <div />
+          </AdminRoute>
+        </ProtectedRoute>
+      ),
+      lazy: () => import('./routes/app/crm').then(convert(queryClient)),
     },
     {
       path: paths.admin.root.path,

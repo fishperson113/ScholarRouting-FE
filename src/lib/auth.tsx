@@ -93,6 +93,11 @@ export const useGoogleLoginWithAPI = () => {
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useUser();
 
+  // Show nothing while loading to prevent flash of redirect
+  if (user.isLoading) {
+    return null;
+  }
+
   if (!user.data) {
     return (
       <Navigate to={paths.home.getHref()} replace />

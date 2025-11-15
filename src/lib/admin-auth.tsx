@@ -6,6 +6,11 @@ import { paths } from '@/config/paths';
 export const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const user = useUser();
 
+  // Show nothing while loading to prevent flash of redirect
+  if (user.isLoading) {
+    return null;
+  }
+
   // Check if user is authenticated
   if (!user.data) {
     return <Navigate to={paths.home.getHref()} replace />;

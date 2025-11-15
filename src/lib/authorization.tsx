@@ -43,13 +43,13 @@ export const getRedirectPath = (user: FirebaseUser | null): string => {
 export const useAuthorization = () => {
   const user = useUser();
 
-  if (!user.data) {
-    throw Error('User does not exist!');
-  }
-
   const checkAccess = React.useCallback(
     ({ allowedRoles }: { allowedRoles: RoleTypes[] }) => {
-      if (allowedRoles && allowedRoles.length > 0 && user.data) {
+      if (!user.data) {
+        return false;
+      }
+
+      if (allowedRoles && allowedRoles.length > 0) {
         const userRole = getUserRole(user.data);
         return allowedRoles?.includes(userRole);
       }
@@ -59,7 +59,11 @@ export const useAuthorization = () => {
     [user.data],
   );
 
-  return { checkAccess, role: getUserRole(user.data) };
+  return { 
+    checkAccess, 
+    role: user.data ? getUserRole(user.data) : 'USER',
+    isAuthenticated: !!user.data 
+  };
 };
 
 type AuthorizationProps = {
@@ -82,7 +86,12 @@ export const Authorization = ({
   forbiddenFallback = null,
   children,
 }: AuthorizationProps) => {
-  const { checkAccess } = useAuthorization();
+  const { checkAccess, isAuthenticated } = useAuthorization();
+
+  // If not authenticated, show forbidden fallback
+  if (!isAuthenticated) {
+    return <>{forbiddenFallback}</>;
+  }
 
   let canAccess = false;
 
