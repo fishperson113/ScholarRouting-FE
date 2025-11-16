@@ -19,6 +19,7 @@ export interface ScholarshipCardProps {
   isUrgent?: boolean;
   isSaved?: boolean;
   officialUrl?: string;
+  wantedDegree?: string;
   onSave?: (id: string) => void;
   onViewDetails?: (id: string) => void;
 }
@@ -36,6 +37,7 @@ export const ScholarshipCard = ({
   isUrgent = false,
   isSaved = false,
   officialUrl,
+  wantedDegree,
   onSave,
   onViewDetails,
 }: ScholarshipCardProps) => {
@@ -115,10 +117,40 @@ export const ScholarshipCard = ({
     }
   };
 
+  const getDegreeColor = (degree?: string) => {
+    if (!degree) return 'bg-gray-100 text-gray-700';
+    const lowerDegree = degree.toLowerCase();
+    if (lowerDegree.includes('bachelor')) return 'bg-blue-100 text-blue-700 border-blue-200';
+    if (lowerDegree.includes('master')) return 'bg-purple-100 text-purple-700 border-purple-200';
+    if (lowerDegree.includes('phd') || lowerDegree.includes('doctor')) return 'bg-amber-100 text-amber-700 border-amber-200';
+    return 'bg-gray-100 text-gray-700 border-gray-200';
+  };
+
+  const getDegreeBadgeText = (degree?: string) => {
+    if (!degree) return null;
+    const lowerDegree = degree.toLowerCase();
+    if (lowerDegree.includes('bachelor')) return 'Bachelor';
+    if (lowerDegree.includes('master')) return 'Master';
+    if (lowerDegree.includes('phd') || lowerDegree.includes('doctor')) return 'PhD';
+    return degree;
+  };
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full">
+    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200 flex flex-col h-full relative">
+      {/* Degree Tag - Top Right */}
+      {wantedDegree && (
+        <div className="absolute top-0 right-0">
+          <span className={cn(
+            'inline-block px-3 py-1 text-xs font-semibold rounded-bl-lg rounded-tr-lg border',
+            getDegreeColor(wantedDegree)
+          )}>
+            {getDegreeBadgeText(wantedDegree)}
+          </span>
+        </div>
+      )}
+      
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-3 mt-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h3 className="text-lg font-semibold text-gray-900 leading-tight">

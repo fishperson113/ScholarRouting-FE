@@ -28,6 +28,7 @@ interface RawScholarship {
   requirements?: string[];
   degree_level?: string;
   Required_Degree?: string;
+  Wanted_Degree?: string;
   min_gpa?: number;
   Min_Gpa?: number;
   min_ielts?: number;
@@ -116,6 +117,9 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
           ? formatDeadline(scholarship.End_Date || scholarship.deadline)
           : undefined;
         
+        // Extract wanted degree for the badge
+        const wantedDegree = scholarship.Wanted_Degree;
+        
         // Build requirements array
         const requirements: string[] = [];
         const requiredDegree = scholarship.Required_Degree || scholarship.degree_level;
@@ -159,6 +163,7 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
           isUrgent,
           isSaved: savedScholarshipIds.has(id), // Check if this scholarship is saved
           officialUrl,
+          wantedDegree,
         });
       } catch (error) {
         console.error('Error transforming scholarship at index:', index, error);
