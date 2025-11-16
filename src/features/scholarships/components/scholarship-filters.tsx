@@ -5,8 +5,8 @@ import type { ScholarshipFilters } from '@/types/scholarship';
 
 // Default degree levels
 const defaultDegreeLevels = [
-  "Bachelor's Degree",
-  "Master's Degree",
+  "Bachelor",
+  "Master",
   "PhD",
   "Associate Degree",
   "Professional Degree"
@@ -74,21 +74,25 @@ export const ScholarshipFiltersComponent = ({
 
   // Default countries list
   const countries = [
-    "United States",
-    "United Kingdom",
-    "Canada",
-    "Australia",
-    "Germany",
-    "Netherlands",
-    "Sweden",
-    "Norway",
-    "Denmark",
-    "Switzerland",
-    "France",
-    "Japan",
-    "South Korea",
-    "Singapore",
-    "New Zealand"
+   "Afghanistan", "Albania", "Algeria", "Antigua", "Australia", "Austria", "Azerbaijan",
+"Bahamas", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
+"Bosnia", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia",
+"Cameroon", "Canada", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+"Croatia", "Cuba", "Cyprus", "Denmark", "Djibouti", "Dominica", "Ecuador", "Egypt", "El Salvador",
+"Eritrea", "Estonia", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia",
+"Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guyana", "Haiti", "Honduras",
+"Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica",
+"Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia",
+"Lebanon", "Lesotho", "Liberia", "Libya", "Lithuania", "Luxembourg", "Madagascar", "Malawi",
+"Malaysia", "Maldives", "Mali", "Malta", "Mauritania", "Mauritius", "Mexico", "Moldova",
+"Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
+"Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Norway", "Oman", "Pakistan",
+"Panama", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia",
+"Rwanda", "Samoa", "Senegal", "Serbia", "Seychelles", "Singapore", "Slovakia", "Slovenia",
+"Somalia", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria",
+"Tajikistan", "Tanzania", "Thailand", "Togo", "Tonga", "Tunisia", "Turkey", "Turkmenistan",
+"Tuvalu", "Uganda", "Ukraine", "UAE", "UK", "USA", "Uzbekistan", "Vanuatu", "Venezuela",
+"Vietnam", "Yemen", "Zambia", "Zimbabwe"
   ];
 
   // Default field of study options
@@ -114,10 +118,10 @@ export const ScholarshipFiltersComponent = ({
 
   // Default degree levels
   const defaultDegreeLevels = filterOptions?.degreeLevels || [
-    "Bachelor's degree",
-    "Master's degree",
+    "Bachelor",
+    "Master",
     "PhD",
-    "Postdoctoral"
+
   ];
 
   if (!isVisible) return null;
@@ -257,8 +261,7 @@ export const ScholarshipFiltersComponent = ({
                   <option value="">All Types</option>
                   <option value="Government">Government</option>
                   <option value="University">University</option>
-                  <option value="Private">Private</option>
-                  <option value="Organization">Organization</option>
+                  <option value="Organization/Foundation">Organization/Foundation</option>
                 </select>
               </div>
             )}
@@ -292,6 +295,10 @@ export const ScholarshipFiltersComponent = ({
                   <option value="Tuition Waiver">Tuition Waiver</option>
                   <option value="Stipend">Stipend</option>
                   <option value="Partial">Partial Funding</option>
+                  <option value="Accommodation">Accommodation</option>
+                  <option value="Other Costs">Other Costs</option>
+                  <option value="Fixed Amount">Fixed Amount</option>
+                  <option value="Partial Funding">Partial Funding</option>
                 </select>
               </div>
             )}
