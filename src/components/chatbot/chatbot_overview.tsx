@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Fragment } from 'react'; // <-- SỬA ĐỔI: Thêm 'Fragment'
 import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings, Check, Zap, Sparkles, History } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
@@ -11,6 +11,7 @@ interface Message {
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
+  scholarship_names?: string[]; // <-- SỬA ĐỔI: Thêm trường này để lưu tên học bổng
 }
 
 // Helper function to parse inline markdown (bold text with **)
@@ -217,6 +218,7 @@ export function Chatbot() {
         text: data.answer || 'Sorry, I could not process your request.',
         sender: 'bot',
         timestamp: new Date(),
+        scholarship_names: data.scholarship_names, // <-- SỬA ĐỔI: Lấy danh sách tên học bổng từ API (dựa trên ảnh bạn cung cấp)
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error: any) {
@@ -257,8 +259,123 @@ export function Chatbot() {
       sender: 'user',
       timestamp: new Date(),
     };
-    setMessages([...messages, newMessage]);
+    // SỬA ĐỔI: Sử dụng setMessages(prev => ...) để đảm bảo state được cập nhật đúng cách
+    // và gọi handleSend ngay sau đó để tự động gửi tin nhắn này
+    setMessages(prev => [...prev, newMessage]);
+    
+    // Tự động gửi tin nhắn này đi
+    // Chúng ta cần một cách để 'handleSend' biết được tin nhắn là gì
+    // Cách đơn giản nhất là set inputValue và gọi handleSend
+    // Nhưng handleSend sẽ xoá inputValue.
+    // Thay vào đó, tôi sẽ tạo một hàm mới để gửi tin nhắn đã biết trước
+    
+    // Tạo một hàm riêng để xử lý logic gửi (vì handleSend lấy từ inputValue)
+    sendBotRequest(reply); 
   };
+  
+  // SỬA ĐỔI: Tách logic gửi tin nhắn ra hàm riêng để handleQuickReply có thể gọi
+  const sendBotRequest = async (query: string) => {
+    if (isThinking) return;
+
+    currentQueryRef.current = query; // Store the query for potential restoration
+    setIsThinking(true);
+    setLoadingStage(1);
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+
+    // Progressive loading stages
+    loadingIntervalRef.current = setInterval(() => {
+      setLoadingStage(prev => {
+        if (prev < 4) return prev + 1;
+        return prev;
+      });
+    }, 3000); // Change stage every 3 seconds
+
+    try {
+      // Send POST request to chatbot API with plan information and user_id
+      const response = await fetch(`${env.API_URL}/chatbot/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          query, // Sử dụng query từ tham số
+          plan: selectedPlan,
+          user_id: user.data?.uid || null // Pass user ID for chat history storage
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from chatbot');
+      }
+
+      const data = await response.json();
+
+      // Clear loading interval when response is received
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+        loadingIntervalRef.current = null;
+      }
+
+      // Add bot response with the answer from API
+      const botResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.answer || 'Sorry, I could not process your request.',
+        sender: 'bot',
+        timestamp: new Date(),
+        scholarship_names: data.scholarship_names, // Lấy danh sách tên học bổng
+      };
+      setMessages(prev => [...prev, botResponse]);
+    } catch (error: any) {
+      // Clear loading interval on error
+      if (loadingIntervalRef.current) {
+        clearInterval(loadingIntervalRef.current);
+        loadingIntervalRef.current = null;
+      }
+
+      // Check if error is due to abort
+      if (error.name === 'AbortError') {
+        console.log('Request was aborted');
+        return;
+      }
+      
+      console.error('Error sending message to chatbot:', error);
+      
+      // Show error message to user
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Sorry, I encountered an error. Please try again later.',
+        sender: 'bot',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsThinking(false);
+      setLoadingStage(0);
+      abortControllerRef.current = null;
+      currentQueryRef.current = ''; // Clear the stored query after completion
+    }
+  }
+  
+  // SỬA ĐỔI: Cập nhật hàm handleSend gốc để gọi sendBotRequest
+  const handleSendFromInput = () => {
+    if (!inputValue.trim() || isThinking) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: inputValue,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+
+    const query = inputValue;
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    sendBotRequest(query);
+  };
+
 
   if (!isOpen) {
     return (
@@ -529,28 +646,48 @@ export function Chatbot() {
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
               {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={cn(
-                    'flex',
-                    message.sender === 'user' ? 'justify-end' : 'justify-start'
-                  )}
-                >
+                // SỬA ĐỔI: Bọc tin nhắn và các button học bổng (nếu có) trong React.Fragment
+                // Chuyển 'key' lên Fragment
+                <Fragment key={message.id}> 
                   <div
                     className={cn(
-                      'max-w-[80%] rounded-lg p-3 text-sm',
-                      message.sender === 'user'
-                        ? 'bg-blue-900 text-white'
-                        : 'bg-white text-gray-800 shadow-sm'
+                      'flex',
+                      message.sender === 'user' ? 'justify-end' : 'justify-start'
                     )}
                   >
-                    {message.sender === 'bot' ? (
-                      <FormattedScholarshipMessage text={message.text} />
-                    ) : (
-                      message.text
-                    )}
+                    <div
+                      className={cn(
+                        'max-w-[80%] rounded-lg p-3 text-sm',
+                        message.sender === 'user'
+                          ? 'bg-blue-900 text-white'
+                          : 'bg-white text-gray-800 shadow-sm'
+                      )}
+                    >
+                      {message.sender === 'bot' ? (
+                        <FormattedScholarshipMessage text={message.text} />
+                      ) : (
+                        message.text
+                      )}
+                    </div>
                   </div>
-                </div>
+
+                  {/* SỬA ĐỔI: Thêm khối để render các button tên học bổng */}
+                  {message.sender === 'bot' && message.scholarship_names && message.scholarship_names.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2 justify-start pl-2">
+                      {message.scholarship_names.map((name, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleQuickReply(name)} // Gửi tên học bổng như một tin nhắn mới
+                          className="px-4 py-1.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors text-left"
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {/* KẾT THÚC SỬA ĐỔI */}
+
+                </Fragment> // KẾT THÚC SỬA ĐỔI
               ))}
 
               {/* Thinking indicator with progressive stages */}
@@ -575,6 +712,7 @@ export function Chatbot() {
               )}
 
               {/* Quick Reply Buttons */}
+              {/* SỬA ĐỔI: Chỉ hiển thị nút này nếu không có học bổng nào được đề xuất (tránh trùng lặp) */}
               {messages.length === 1 && (
                 <div className="flex gap-2 justify-center">
                   <button
@@ -614,7 +752,7 @@ export function Chatbot() {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendFromInput()} // SỬA ĐỔI: Gọi hàm mới
                   placeholder="Enter your message..."
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
@@ -628,7 +766,7 @@ export function Chatbot() {
                   </button>
                 ) : (
                   <button
-                    onClick={handleSend}
+                    onClick={handleSendFromInput} // SỬA ĐỔI: Gọi hàm mới
                     className="p-3 bg-blue-900 text-white rounded-full hover:bg-blue-800 transition-colors"
                     aria-label="Send"
                   >
