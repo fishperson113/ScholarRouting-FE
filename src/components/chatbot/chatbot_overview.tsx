@@ -1,17 +1,46 @@
-import { useState, useRef, useEffect, Fragment } from 'react'; // <-- SỬA ĐỔI: Thêm 'Fragment'
-import { MessageCircle, X, Send, ChevronDown, Smile, Paperclip, Settings, Check, Zap, Sparkles, History } from 'lucide-react';
+import { useState, useRef, useEffect, Fragment } from 'react';
+import {
+  MessageCircle,
+  X,
+  Send,
+  ChevronDown,
+  Smile,
+  Paperclip,
+  Settings,
+  Check,
+  Zap,
+  Sparkles,
+  History,
+  MoreVertical,
+  Eye,
+  MessageSquare,
+} from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
 import { useUser } from '@/lib/auth';
+import { useNavigate } from 'react-router';
+import { paths } from '@/config/paths';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown/dropdown';
 
 type ChatbotPlan = 'basic' | 'pro';
+
+interface ScholarshipInfo {
+  name: string;
+  id: string;
+}
 
 interface Message {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
-  scholarship_names?: string[]; // <-- SỬA ĐỔI: Thêm trường này để lưu tên học bổng
+  scholarship_names?: string[];
+  scholarships?: ScholarshipInfo[];
 }
 
 // Helper function to parse inline markdown (bold text with **)
@@ -96,20 +125,74 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
   return <div className="space-y-0.5">{elements}</div>;
 }
 
+const CHATBOT_STORAGE_KEY = 'chatbot_state';
+
 export function Chatbot() {
   const user = useUser();
-  const [isOpen, setIsOpen] = useState(false);
-  const [showPlanSelection, setShowPlanSelection] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<ChatbotPlan | null>(null);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Hi there! Nice to see you 👋. I am so happy that help you choose suitable scholarships',
-      sender: 'bot',
-      timestamp: new Date(),
-    },
-  ]);
+  const navigate = useNavigate();
+  
+  // Initialize state from localStorage
+  const [isOpen, setIsOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      return saved ? JSON.parse(saved).isOpen : false;
+    } catch {
+      return false;
+    }
+  });
+  
+  const [showPlanSelection, setShowPlanSelection] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      return saved ? JSON.parse(saved).showPlanSelection : false;
+    } catch {
+      return false;
+    }
+  });
+  
+  const [selectedPlan, setSelectedPlan] = useState<ChatbotPlan | null>(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      return saved ? JSON.parse(saved).selectedPlan : null;
+    } catch {
+      return null;
+    }
+  });
+  
+  const [isMinimized, setIsMinimized] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      return saved ? JSON.parse(saved).isMinimized : false;
+    } catch {
+      return false;
+    }
+  });
+  
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.messages && Array.isArray(parsed.messages)) {
+          return parsed.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load messages from localStorage:', error);
+    }
+    return [
+      {
+        id: '1',
+        text: 'Hi there! Nice to see you 👋. I am so happy that help you choose suitable scholarships',
+        sender: 'bot',
+        timestamp: new Date(),
+      },
+    ];
+  });
+  
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
@@ -117,6 +200,22 @@ export function Chatbot() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentQueryRef = useRef<string>('');
   const loadingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      const state = {
+        isOpen,
+        showPlanSelection,
+        selectedPlan,
+        isMinimized,
+        messages,
+      };
+      localStorage.setItem(CHATBOT_STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to save chatbot state:', error);
+    }
+  }, [isOpen, showPlanSelection, selectedPlan, isMinimized, messages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -218,7 +317,13 @@ export function Chatbot() {
         text: data.answer || 'Sorry, I could not process your request.',
         sender: 'bot',
         timestamp: new Date(),
-        scholarship_names: data.scholarship_names, // <-- SỬA ĐỔI: Lấy danh sách tên học bổng từ API (dựa trên ảnh bạn cung cấp)
+        scholarship_names: data.scholarship_names,
+        scholarships: data.scholarships || (data.scholarship_names && data.scholarship_ids 
+          ? data.scholarship_names.map((name: string, idx: number) => ({
+              name,
+              id: data.scholarship_ids[idx]
+            }))
+          : undefined),
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error: any) {
@@ -259,21 +364,19 @@ export function Chatbot() {
       sender: 'user',
       timestamp: new Date(),
     };
-    // SỬA ĐỔI: Sử dụng setMessages(prev => ...) để đảm bảo state được cập nhật đúng cách
-    // và gọi handleSend ngay sau đó để tự động gửi tin nhắn này
     setMessages(prev => [...prev, newMessage]);
-    
-    // Tự động gửi tin nhắn này đi
-    // Chúng ta cần một cách để 'handleSend' biết được tin nhắn là gì
-    // Cách đơn giản nhất là set inputValue và gọi handleSend
-    // Nhưng handleSend sẽ xoá inputValue.
-    // Thay vào đó, tôi sẽ tạo một hàm mới để gửi tin nhắn đã biết trước
-    
-    // Tạo một hàm riêng để xử lý logic gửi (vì handleSend lấy từ inputValue)
     sendBotRequest(reply); 
   };
+
+  const handleViewScholarshipDetails = (scholarshipId: string) => {
+    navigate(paths.app.scholarshipDetail.getHref(scholarshipId));
+  };
+
+  const handleAskScholarship = (scholarshipName: string) => {
+    handleQuickReply(scholarshipName);
+  };
   
-  // SỬA ĐỔI: Tách logic gửi tin nhắn ra hàm riêng để handleQuickReply có thể gọi
+  // Tách logic gửi tin nhắn ra hàm riêng
   const sendBotRequest = async (query: string) => {
     if (isThinking) return;
 
@@ -325,7 +428,13 @@ export function Chatbot() {
         text: data.answer || 'Sorry, I could not process your request.',
         sender: 'bot',
         timestamp: new Date(),
-        scholarship_names: data.scholarship_names, // Lấy danh sách tên học bổng
+        scholarship_names: data.scholarship_names,
+        scholarships: data.scholarships || (data.scholarship_names && data.scholarship_ids 
+          ? data.scholarship_names.map((name: string, idx: number) => ({
+              name,
+              id: data.scholarship_ids[idx]
+            }))
+          : undefined),
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error: any) {
@@ -671,13 +780,54 @@ export function Chatbot() {
                     </div>
                   </div>
 
-                  {/* SỬA ĐỔI: Thêm khối để render các button tên học bổng */}
-                  {message.sender === 'bot' && message.scholarship_names && message.scholarship_names.length > 0 && (
+                  {/* Scholarship buttons with dropdown menu */}
+                  {message.sender === 'bot' && message.scholarships && message.scholarships.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2 justify-start pl-2">
+                      {message.scholarships.map((scholarship, index) => (
+                        <div key={index} className="flex items-center gap-1 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors">
+                          <button
+                            onClick={() => handleQuickReply(scholarship.name)}
+                            className="px-4 py-1.5 text-blue-800 text-xs font-medium text-left"
+                          >
+                            {scholarship.name}
+                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                className="pr-2 pl-1 py-1.5 text-blue-800 hover:text-blue-900 transition-colors"
+                                aria-label="Scholarship options"
+                              >
+                                <MoreVertical className="w-3.5 h-3.5" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                              <DropdownMenuItem
+                                onClick={() => handleViewScholarshipDetails(scholarship.id)}
+                                className="cursor-pointer"
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                View scholarship details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleAskScholarship(scholarship.name)}
+                                className="cursor-pointer"
+                              >
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                Ask scholarships
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Fallback for legacy API responses */}
+                  {message.sender === 'bot' && !message.scholarships && message.scholarship_names && message.scholarship_names.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2 justify-start pl-2">
                       {message.scholarship_names.map((name, index) => (
                         <button
                           key={index}
-                          onClick={() => handleQuickReply(name)} // Gửi tên học bổng như một tin nhắn mới
+                          onClick={() => handleQuickReply(name)}
                           className="px-4 py-1.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors text-left"
                         >
                           {name}
@@ -685,7 +835,6 @@ export function Chatbot() {
                       ))}
                     </div>
                   )}
-                  {/* KẾT THÚC SỬA ĐỔI */}
 
                 </Fragment> // KẾT THÚC SỬA ĐỔI
               ))}
