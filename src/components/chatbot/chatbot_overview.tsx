@@ -14,6 +14,7 @@ import {
   MoreVertical,
   Eye,
   MessageSquare,
+  MessageSquarePlus,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { env } from '@/config/env';
@@ -375,6 +376,32 @@ export function Chatbot() {
   const handleAskScholarship = (scholarshipName: string) => {
     handleQuickReply(scholarshipName);
   };
+
+  const handleNewChat = () => {
+    // Reset messages to initial welcome message
+    setMessages([
+      {
+        id: Date.now().toString(),
+        text: 'Hi there! Nice to see you 👋. I am so happy that help you choose suitable scholarships',
+        sender: 'bot',
+        timestamp: new Date(),
+      },
+    ]);
+    // Clear input
+    setInputValue('');
+    // Reset thinking state
+    setIsThinking(false);
+    setLoadingStage(0);
+    // Clear any ongoing requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (loadingIntervalRef.current) {
+      clearInterval(loadingIntervalRef.current);
+      loadingIntervalRef.current = null;
+    }
+  };
   
   // Tách logic gửi tin nhắn ra hàm riêng
   const sendBotRequest = async (query: string) => {
@@ -720,6 +747,14 @@ export function Chatbot() {
               aria-label="Minimize"
             >
               <ChevronDown className={cn('w-5 h-5 transition-transform', isMinimized && 'rotate-180')} />
+            </button>
+            <button
+              onClick={handleNewChat}
+              className="p-1 hover:bg-blue-700 rounded transition-colors"
+              aria-label="New Chat"
+              title="New Chat"
+            >
+              <MessageSquarePlus className="w-5 h-5" />
             </button>
             <button
               onClick={() => {
