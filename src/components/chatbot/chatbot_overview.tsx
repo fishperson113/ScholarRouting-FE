@@ -63,7 +63,7 @@ function parseInlineMarkdown(text: string): (string | JSX.Element)[] {
     
     // Add bold text
     parts.push(
-      <strong key={`bold-${keyIndex++}`} className="font-semibold">
+      <strong key={`bold-${keyIndex++}`} className="font-semibold text-blue-600">
         {match[1]}
       </strong>
     );
@@ -114,7 +114,7 @@ function FormattedScholarshipMessage({
             <span className="flex-1">
               <button
                 onClick={() => onScholarshipClick?.(scholarshipName)}
-                className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors"
+                className="font-semibold hover:text-blue-800 hover:underline cursor-pointer transition-colors"
               >
                 {scholarshipName}
               </button>
@@ -386,6 +386,16 @@ export function Chatbot() {
     setMessages(prev => [...prev, newMessage]);
     sendBotRequest(reply); 
   };
+  const handleReplyFromSuggestion = (reply: string) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text: reply,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, newMessage]);
+    sendBotRequest(reply); 
+  };
 
   const handleViewScholarshipDetails = (scholarshipId: string) => {
     navigate(paths.app.scholarshipDetail.getHref(scholarshipId));
@@ -396,8 +406,8 @@ export function Chatbot() {
   };
 
   const handleScholarshipNameClick = (scholarshipName: string) => {
-    const query = `Tell me more about ${scholarshipName}`;
-    handleQuickReply(query);
+    //const query = `Tell me more about ${scholarshipName}`;
+    handleQuickReply(scholarshipName);
   };
 
   const handleNewChat = () => {
@@ -405,7 +415,7 @@ export function Chatbot() {
     setMessages([
       {
         id: Date.now().toString(),
-        text: 'Hi there! Nice to see you 👋. I am so happy that help you choose suitable scholarships',
+        text: 'Hi! I am a Scholarship Routing virtual assistant. How would you like me to help you today?',
         sender: 'bot',
         timestamp: new Date(),
       },
@@ -922,20 +932,37 @@ export function Chatbot() {
               )}
 
               {/* Quick Reply Buttons */}
-              {/* SỬA ĐỔI: Chỉ hiển thị nút này nếu không có học bổng nào được đề xuất (tránh trùng lặp) */}
               {messages.length === 1 && (
-                <div className="flex gap-2 justify-center">
+                <div className="space-y-3 px-2">
+                  <div className="text-xs font-medium text-gray-500 text-center mb-3">
+                    Try asking me:
+                  </div>
                   <button
-                    onClick={() => handleQuickReply('Yes, sure!')}
-                    className="px-6 py-2 bg-blue-900 text-white rounded-full text-sm font-medium hover:bg-blue-800 transition-colors"
+                    onClick={() => handleReplyFromSuggestion('Find full-ride Data Science Master\'s scholarships in the US')}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-gray-800 rounded-xl text-sm text-left border border-blue-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md group"
                   >
-                    Yes, sure!
+                    <div className="flex items-start gap-3">
+                      <span className="font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">🎓</span>
+                      <span className="flex-1 leading-relaxed">Find full-ride Data Science Master's scholarships in the US</span>
+                    </div>
                   </button>
                   <button
-                    onClick={() => handleQuickReply('No, thanks.')}
-                    className="px-6 py-2 bg-white text-blue-900 border-2 border-blue-900 rounded-full text-sm font-medium hover:bg-gray-50 transition-colors"
+                    onClick={() => handleReplyFromSuggestion('Help me find European scholarships accepting TOEIC 700')}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-gray-800 rounded-xl text-sm text-left border border-purple-200 hover:border-purple-300 transition-all duration-200 shadow-sm hover:shadow-md group"
                   >
-                    No, thanks.
+                    <div className="flex items-start gap-3">
+                      <span className="text-purple-600 font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">🌍</span>
+                      <span className="flex-1 leading-relaxed">Help me find European scholarships accepting TOEIC 700</span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleReplyFromSuggestion('Suggest scholarships suitable for GPA 3.0/4.0')}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-gray-800 rounded-xl text-sm text-left border border-green-200 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md group"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-green-600 font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">📊</span>
+                      <span className="flex-1 leading-relaxed">Suggest scholarships suitable for GPA 3.0/4.0</span>
+                    </div>
                   </button>
                 </div>
               )}
