@@ -79,8 +79,14 @@ function parseInlineMarkdown(text: string): (string | JSX.Element)[] {
   return parts.length > 0 ? parts : [text];
 }
 
-// Component to render formatted scholarship text
-function FormattedScholarshipMessage({ text }: { text: string }) {
+// Component to render formatted scholarship text with clickable scholarship names
+function FormattedScholarshipMessage({ 
+  text, 
+  onScholarshipClick 
+}: { 
+  text: string;
+  onScholarshipClick?: (scholarshipName: string) => void;
+}) {
   const lines = text.split('\n');
   const elements: JSX.Element[] = [];
   let keyIndex = 0;
@@ -95,14 +101,25 @@ function FormattedScholarshipMessage({ text }: { text: string }) {
       const content = trimmedLine.substring(1).trim();
       
       // Check if this is a scholarship name (contains bold text at the start)
-      const isScholarshipName = content.match(/^\*\*[^*]+\*\*/);
+      const scholarshipNameMatch = content.match(/^\*\*([^*]+)\*\*/);
       
-      if (isScholarshipName) {
-        // This is a scholarship name - use bullet
+      if (scholarshipNameMatch) {
+        // This is a scholarship name - make it clickable
+        const scholarshipName = scholarshipNameMatch[1];
+        const restOfContent = content.substring(scholarshipNameMatch[0].length);
+        
         elements.push(
           <div key={`line-${keyIndex++}`} className="mb-2 mt-3 text-sm flex">
             <span className="mr-2">•</span>
-            <span className="flex-1">{parseInlineMarkdown(content)}</span>
+            <span className="flex-1">
+              <button
+                onClick={() => onScholarshipClick?.(scholarshipName)}
+                className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors"
+              >
+                {scholarshipName}
+              </button>
+              {restOfContent && <span>{restOfContent}</span>}
+            </span>
           </div>
         );
       } else {
@@ -263,7 +280,7 @@ export function Chatbot() {
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: inputValue,
+      text: "Tell me more about" +inputValue,
       sender: 'user',
       timestamp: new Date(),
     };
@@ -362,7 +379,7 @@ export function Chatbot() {
   const handleQuickReply = (reply: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
-      text: reply,
+      text: "Tell me more about " + reply,
       sender: 'user',
       timestamp: new Date(),
     };
@@ -376,6 +393,11 @@ export function Chatbot() {
 
   const handleAskScholarship = (scholarshipName: string) => {
     handleQuickReply(scholarshipName);
+  };
+
+  const handleScholarshipNameClick = (scholarshipName: string) => {
+    const query = `Tell me more about ${scholarshipName}`;
+    handleQuickReply(query);
   };
 
   const handleNewChat = () => {
@@ -809,7 +831,10 @@ export function Chatbot() {
                       )}
                     >
                       {message.sender === 'bot' ? (
-                        <FormattedScholarshipMessage text={message.text} />
+                        <FormattedScholarshipMessage 
+                          text={message.text} 
+                          onScholarshipClick={handleScholarshipNameClick}
+                        />
                       ) : (
                         message.text
                       )}
