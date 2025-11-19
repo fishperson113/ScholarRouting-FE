@@ -6,6 +6,7 @@ import { useUser } from '@/lib/auth';
 import { Spinner } from '@/components/ui/spinner';
 import { useToast } from '@/hooks/use-toast';
 import type { ScholarshipApplication } from '@/types/scholarship';
+import { Chatbot } from '@/components/chatbot/chatbot_overview';
 
 type ApplicationStatus = 'submitted' | 'under_review' | 'accepted' | 'rejected' | 'withdrawn';
 type StatusFilterOption = 'All Status' | ApplicationStatus;
@@ -589,6 +590,9 @@ const ApplicationsRoute = () => {
           </div>
         </div>
       )}
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 };
