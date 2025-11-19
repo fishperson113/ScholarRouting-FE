@@ -1,0 +1,36 @@
+/* Chatbot Responsive Styles */
+
+/* Mobile-specific styles for screens < 640px */
+@media (max-width: 639px) {
+  .scholarship-routing-chat-pro {
+    position: fixed !important;
+    width: 95vw !important;
+    max-height: 85vh !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: env(safe-area-inset-bottom, 20px) !important;
+    right: auto !important;
+  }
+
+  /* Ensure the parent container is also properly positioned on mobile */
+  .scholarship-routing-chat-pro-container {
+    position: fixed !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    bottom: 20px !important;
+    right: auto !important;
+    width: 95vw !important;
+  }
+
+  /* Adjust the floating button on mobile */
+  .chatbot-floating-button-container {
+    right: 1.5rem !important;
+    left: auto !important;
+    transform: none !important;
+  }
+}
+
+/* Ensure smooth transitions */
+.scholarship-routing-chat-pro {
+  transition: all 0.3s ease-in-out;
+}

@@ -27,6 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown/dropdown';
+import './chatbot.css';
 
 type ChatbotPlan = 'basic' | 'pro';
 
@@ -515,9 +516,9 @@ export function Chatbot() {
 
   if (!isOpen) {
     return (
-      <div className="fixed right-6 z-50 group" style={{ bottom: 'calc(1.5rem + 30px)' }}>
+      <div className="chatbot-floating-button-container fixed right-6 z-50 group" style={{ bottom: 'calc(1.5rem + 30px)' }}>
         {/* Tooltip */}
-        <div className="absolute bottom-20 right-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200">
+        <div className="absolute bottom-20 right-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 max-sm:hidden">
           <div className="bg-white px-6 py-5 rounded-3xl shadow-xl border border-gray-100 min-w-[320px]">
             <div className="flex items-start gap-3 mb-6">
               <div className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -582,8 +583,8 @@ export function Chatbot() {
   // Plan Selection Screen
   if (showPlanSelection) {
     return (
-      <div className="fixed right-6 z-50" style={{ bottom: 'calc(1.5rem + 30px)' }}>
-        <div className="bg-white rounded-lg shadow-2xl w-[460px] flex flex-col">
+      <div className="scholarship-routing-chat-pro-container fixed right-6 z-50" style={{ bottom: 'calc(1.5rem + 30px)' }}>
+        <div className="scholarship-routing-chat-pro bg-white rounded-lg shadow-2xl w-[460px] flex flex-col">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -703,10 +704,10 @@ export function Chatbot() {
   }
 
   return (
-    <div className="fixed right-6 z-50" style={{ bottom: 'calc(1.5rem + 30px)' }}>
+    <div className="scholarship-routing-chat-pro-container fixed right-6 z-50" style={{ bottom: 'calc(1.5rem + 30px)' }}>
       <div
         className={cn(
-          'bg-white rounded-lg shadow-2xl transition-all duration-300',
+          'scholarship-routing-chat-pro bg-white rounded-lg shadow-2xl transition-all duration-300',
           isMinimized ? 'w-80 h-16' : 'w-[460px] h-[600px]',
           'flex flex-col'
         )}
