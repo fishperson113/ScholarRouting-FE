@@ -63,7 +63,7 @@ function parseInlineMarkdown(text: string): (string | JSX.Element)[] {
     
     // Add bold text
     parts.push(
-      <strong key={`bold-${keyIndex++}`} className="font-semibold text-blue-600">
+      <strong key={`bold-${keyIndex++}`} className="font-semibold">
         {match[1]}
       </strong>
     );
@@ -82,10 +82,14 @@ function parseInlineMarkdown(text: string): (string | JSX.Element)[] {
 // Component to render formatted scholarship text with clickable scholarship names
 function FormattedScholarshipMessage({ 
   text, 
-  onScholarshipClick 
+  onScholarshipClick,
+  onViewDetails,
+  scholarships
 }: { 
   text: string;
   onScholarshipClick?: (scholarshipName: string) => void;
+  onViewDetails?: (scholarshipId: string) => void;
+  scholarships?: ScholarshipInfo[];
 }) {
   const lines = text.split('\n');
   const elements: JSX.Element[] = [];
@@ -104,20 +108,50 @@ function FormattedScholarshipMessage({
       const scholarshipNameMatch = content.match(/^\*\*([^*]+)\*\*/);
       
       if (scholarshipNameMatch) {
-        // This is a scholarship name - make it clickable
+        // This is a scholarship name - make it clickable with dropdown
         const scholarshipName = scholarshipNameMatch[1];
         const restOfContent = content.substring(scholarshipNameMatch[0].length);
+        
+        // Find the scholarship ID if available
+        const scholarship = scholarships?.find(s => s.name === scholarshipName);
         
         elements.push(
           <div key={`line-${keyIndex++}`} className="mb-2 mt-3 text-sm flex">
             <span className="mr-2">•</span>
-            <span className="flex-1">
-              <button
-                onClick={() => onScholarshipClick?.(scholarshipName)}
-                className="font-semibold hover:text-blue-800 hover:underline cursor-pointer transition-colors"
-              >
-                {scholarshipName}
-              </button>
+            <span className="flex-1 flex items-start gap-1">
+              {scholarship ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors inline-flex items-center gap-1">
+                      {scholarshipName}
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56">
+                    <DropdownMenuItem
+                      onClick={() => onViewDetails?.(scholarship.id)}
+                      className="cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View scholarship details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onScholarshipClick?.(scholarshipName)}
+                      className="cursor-pointer"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Ask about scholarship
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <button
+                  onClick={() => onScholarshipClick?.(scholarshipName)}
+                  className="font-semibold hover:text-blue-800 hover:underline cursor-pointer transition-colors"
+                >
+                  {scholarshipName}
+                </button>
+              )}
               {restOfContent && <span>{restOfContent}</span>}
             </span>
           </div>
@@ -405,8 +439,13 @@ export function Chatbot() {
     handleQuickReply(scholarshipName);
   };
 
-  const handleScholarshipNameClick = (scholarshipName: string) => {
-    //const query = `Tell me more about ${scholarshipName}`;
+  const handleScholarshipNameClick = (scholarshipName: string, scholarshipId?: string) => {
+    // If we have the scholarship ID, we can show options
+    // Otherwise, just ask about the scholarship
+    if (scholarshipId) {
+      // This will be handled by the dropdown in the UI
+      return;
+    }
     handleQuickReply(scholarshipName);
   };
 
@@ -844,6 +883,8 @@ export function Chatbot() {
                         <FormattedScholarshipMessage 
                           text={message.text} 
                           onScholarshipClick={handleScholarshipNameClick}
+                          onViewDetails={handleViewScholarshipDetails}
+                          scholarships={message.scholarships}
                         />
                       ) : (
                         message.text
