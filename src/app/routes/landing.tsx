@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Head } from '@/components/seo';
 import { Button } from '@/components/ui/button';
 import { LandingNav } from '@/components/layouts/landing-nav';
+import { Footer } from '@/components/layouts/footer';
 import { AuthDialog } from '@/components/auth';
 import { paths } from '@/config/paths';
 import { useUser } from '@/lib/auth';
@@ -146,6 +147,9 @@ const LandingRoute = () => {
             </p>
           </div>
         </section>
+
+        {/* Footer */}
+        <Footer />
 
         {/* Auth Dialog */}
         <AuthDialog
