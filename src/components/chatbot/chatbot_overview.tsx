@@ -1,19 +1,13 @@
-import { useState, useRef, useEffect, Fragment } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle,
   X,
-  Send,
   ChevronDown,
-  Smile,
-  Paperclip,
   Settings,
   Check,
   Zap,
   Sparkles,
   History,
-  MoreVertical,
-  Eye,
-  MessageSquare,
   MessageSquarePlus,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
@@ -21,162 +15,12 @@ import { env } from '@/config/env';
 import { useUser } from '@/lib/auth';
 import { useNavigate } from 'react-router';
 import { paths } from '@/config/paths';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown/dropdown';
+import { Message } from './chatbox-base';
+import { ChatboxBasic } from './chatbox-basic';
+import { ChatboxPro } from './chatbox-pro';
 import './chatbot.css';
 
 type ChatbotPlan = 'basic' | 'pro';
-
-interface ScholarshipInfo {
-  name: string;
-  id: string;
-}
-
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
-  scholarship_names?: string[];
-  scholarships?: ScholarshipInfo[];
-}
-
-// Helper function to parse inline markdown (bold text with **)
-function parseInlineMarkdown(text: string): (string | JSX.Element)[] {
-  const parts: (string | JSX.Element)[] = [];
-  let lastIndex = 0;
-  let keyIndex = 0;
-  
-  // Match **text** patterns
-  const boldRegex = /\*\*(.+?)\*\*/g;
-  let match;
-  
-  while ((match = boldRegex.exec(text)) !== null) {
-    // Add text before the match
-    if (match.index > lastIndex) {
-      parts.push(text.substring(lastIndex, match.index));
-    }
-    
-    // Add bold text
-    parts.push(
-      <strong key={`bold-${keyIndex++}`} className="font-semibold">
-        {match[1]}
-      </strong>
-    );
-    
-    lastIndex = match.index + match[0].length;
-  }
-  
-  // Add remaining text
-  if (lastIndex < text.length) {
-    parts.push(text.substring(lastIndex));
-  }
-  
-  return parts.length > 0 ? parts : [text];
-}
-
-// Component to render formatted scholarship text with clickable scholarship names
-function FormattedScholarshipMessage({ 
-  text, 
-  onScholarshipClick,
-  onViewDetails,
-  scholarships
-}: { 
-  text: string;
-  onScholarshipClick?: (scholarshipName: string) => void;
-  onViewDetails?: (scholarshipId: string) => void;
-  scholarships?: ScholarshipInfo[];
-}) {
-  const lines = text.split('\n');
-  const elements: JSX.Element[] = [];
-  let keyIndex = 0;
-
-  lines.forEach((line) => {
-    const trimmedLine = line.trim();
-    if (!trimmedLine) return;
-
-    // Check if it's a bullet point (starts with *)
-    if (trimmedLine.startsWith('*')) {
-      // Remove the leading * and trim
-      const content = trimmedLine.substring(1).trim();
-      
-      // Check if this is a scholarship name (contains bold text at the start)
-      const scholarshipNameMatch = content.match(/^\*\*([^*]+)\*\*/);
-      
-      if (scholarshipNameMatch) {
-        // This is a scholarship name - make it clickable with dropdown
-        const scholarshipName = scholarshipNameMatch[1];
-        const restOfContent = content.substring(scholarshipNameMatch[0].length);
-        
-        // Find the scholarship ID if available
-        const scholarship = scholarships?.find(s => s.name === scholarshipName);
-        
-        elements.push(
-          <div key={`line-${keyIndex++}`} className="mb-2 mt-3 text-sm flex">
-            <span className="mr-2">•</span>
-            <span className="flex-1 flex items-start gap-1">
-              {scholarship ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer transition-colors inline-flex items-center gap-1">
-                      {scholarshipName}
-                      <ChevronDown className="w-3 h-3" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuItem
-                      onClick={() => onViewDetails?.(scholarship.id)}
-                      className="cursor-pointer"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      View scholarship details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => onScholarshipClick?.(scholarshipName)}
-                      className="cursor-pointer"
-                    >
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Ask about scholarship
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <button
-                  onClick={() => onScholarshipClick?.(scholarshipName)}
-                  className="font-semibold hover:text-blue-800 hover:underline cursor-pointer transition-colors"
-                >
-                  {scholarshipName}
-                </button>
-              )}
-              {restOfContent && <span>{restOfContent}</span>}
-            </span>
-          </div>
-        );
-      } else {
-        // This is a detail line - use bullet with left margin indentation (sub-list style)
-        elements.push(
-          <div key={`line-${keyIndex++}`} className="mb-1 text-sm ml-6 flex">
-            <span className="mr-2">•</span>
-            <span className="flex-1">{parseInlineMarkdown(content)}</span>
-          </div>
-        );
-      }
-    } else {
-      // Regular text line with inline markdown support
-      elements.push(
-        <div key={`line-${keyIndex++}`} className="mb-1 text-sm">
-          {parseInlineMarkdown(trimmedLine)}
-        </div>
-      );
-    }
-  });
-
-  return <div className="space-y-0.5">{elements}</div>;
-}
 
 const CHATBOT_STORAGE_KEY = 'chatbot_state';
 
@@ -309,118 +153,7 @@ export function Chatbot() {
     setShowPlanSelection(false);
   };
 
-  const handleSend = async () => {
-    if (!inputValue.trim() || isThinking) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: "Tell me more about" +inputValue,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const query = inputValue;
-    currentQueryRef.current = query; // Store the query for potential restoration
-    setInputValue('');
-    setIsThinking(true);
-    setLoadingStage(1);
-
-    // Create new AbortController for this request
-    abortControllerRef.current = new AbortController();
-
-    // Progressive loading stages
-    loadingIntervalRef.current = setInterval(() => {
-      setLoadingStage(prev => {
-        if (prev < 4) return prev + 1;
-        return prev;
-      });
-    }, 3000); // Change stage every 3 seconds
-
-    try {
-      // Send POST request to chatbot API with plan information and user_id
-      const response = await fetch(`${env.API_URL}/chatbot/ask`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          query,
-          plan: selectedPlan,
-          user_id: user.data?.uid || null // Pass user ID for chat history storage
-        }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to get response from chatbot');
-      }
-
-      const data = await response.json();
-
-      // Clear loading interval when response is received
-      if (loadingIntervalRef.current) {
-        clearInterval(loadingIntervalRef.current);
-        loadingIntervalRef.current = null;
-      }
-
-      // Add bot response with the answer from API
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.answer || 'Sorry, I could not process your request.',
-        sender: 'bot',
-        timestamp: new Date(),
-        scholarship_names: data.scholarship_names,
-        scholarships: data.scholarships || (data.scholarship_names && data.scholarship_ids 
-          ? data.scholarship_names.map((name: string, idx: number) => ({
-              name,
-              id: data.scholarship_ids[idx]
-            }))
-          : undefined),
-      };
-      setMessages(prev => [...prev, botResponse]);
-    } catch (error: any) {
-      // Clear loading interval on error
-      if (loadingIntervalRef.current) {
-        clearInterval(loadingIntervalRef.current);
-        loadingIntervalRef.current = null;
-      }
-
-      // Check if error is due to abort
-      if (error.name === 'AbortError') {
-        console.log('Request was aborted');
-        return;
-      }
-      
-      console.error('Error sending message to chatbot:', error);
-      
-      // Show error message to user
-      const errorResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Sorry, I encountered an error. Please try again later.',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorResponse]);
-    } finally {
-      setIsThinking(false);
-      setLoadingStage(0);
-      abortControllerRef.current = null;
-      currentQueryRef.current = ''; // Clear the stored query after completion
-    }
-  };
-
   const handleQuickReply = (reply: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: "Tell me more about " + reply,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, newMessage]);
-    sendBotRequest(reply); 
-  };
-  const handleReplyFromSuggestion = (reply: string) => {
     const newMessage: Message = {
       id: Date.now().toString(),
       text: reply,
@@ -436,17 +169,21 @@ export function Chatbot() {
   };
 
   const handleAskScholarship = (scholarshipName: string) => {
-    handleQuickReply(scholarshipName);
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text: "Tell me more about " + scholarshipName,
+      sender: 'user',
+      timestamp: new Date(),
+    };
+    setMessages(prev => [...prev, newMessage]);
+    sendBotRequest(scholarshipName);
   };
 
   const handleScholarshipNameClick = (scholarshipName: string, scholarshipId?: string) => {
-    // If we have the scholarship ID, we can show options
-    // Otherwise, just ask about the scholarship
     if (scholarshipId) {
-      // This will be handled by the dropdown in the UI
       return;
     }
-    handleQuickReply(scholarshipName);
+    handleAskScholarship(scholarshipName);
   };
 
   const handleNewChat = () => {
@@ -475,36 +212,32 @@ export function Chatbot() {
     }
   };
   
-  // Tách logic gửi tin nhắn ra hàm riêng
   const sendBotRequest = async (query: string) => {
     if (isThinking) return;
 
-    currentQueryRef.current = query; // Store the query for potential restoration
+    currentQueryRef.current = query;
     setIsThinking(true);
     setLoadingStage(1);
 
-    // Create new AbortController for this request
     abortControllerRef.current = new AbortController();
 
-    // Progressive loading stages
     loadingIntervalRef.current = setInterval(() => {
       setLoadingStage(prev => {
         if (prev < 4) return prev + 1;
         return prev;
       });
-    }, 3000); // Change stage every 3 seconds
+    }, 3000);
 
     try {
-      // Send POST request to chatbot API with plan information and user_id
       const response = await fetch(`${env.API_URL}/chatbot/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          query, // Sử dụng query từ tham số
+          query,
           plan: selectedPlan,
-          user_id: user.data?.uid || null // Pass user ID for chat history storage
+          user_id: user.data?.uid || null
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -515,13 +248,11 @@ export function Chatbot() {
 
       const data = await response.json();
 
-      // Clear loading interval when response is received
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current);
         loadingIntervalRef.current = null;
       }
 
-      // Add bot response with the answer from API
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
         text: data.answer || 'Sorry, I could not process your request.',
@@ -537,13 +268,11 @@ export function Chatbot() {
       };
       setMessages(prev => [...prev, botResponse]);
     } catch (error: any) {
-      // Clear loading interval on error
       if (loadingIntervalRef.current) {
         clearInterval(loadingIntervalRef.current);
         loadingIntervalRef.current = null;
       }
 
-      // Check if error is due to abort
       if (error.name === 'AbortError') {
         console.log('Request was aborted');
         return;
@@ -551,7 +280,6 @@ export function Chatbot() {
       
       console.error('Error sending message to chatbot:', error);
       
-      // Show error message to user
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
         text: 'Sorry, I encountered an error. Please try again later.',
@@ -563,12 +291,11 @@ export function Chatbot() {
       setIsThinking(false);
       setLoadingStage(0);
       abortControllerRef.current = null;
-      currentQueryRef.current = ''; // Clear the stored query after completion
+      currentQueryRef.current = '';
     }
   }
   
-  // SỬA ĐỔI: Cập nhật hàm handleSend gốc để gọi sendBotRequest
-  const handleSendFromInput = () => {
+  const handleSend = () => {
     if (!inputValue.trim() || isThinking) return;
 
     const userMessage: Message = {
@@ -859,200 +586,37 @@ export function Chatbot() {
 
         {!isMinimized && (
           <>
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-              {messages.map((message) => (
-                // SỬA ĐỔI: Bọc tin nhắn và các button học bổng (nếu có) trong React.Fragment
-                // Chuyển 'key' lên Fragment
-                <Fragment key={message.id}> 
-                  <div
-                    className={cn(
-                      'flex',
-                      message.sender === 'user' ? 'justify-end' : 'justify-start'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'max-w-[80%] rounded-lg p-3 text-sm',
-                        message.sender === 'user'
-                          ? 'bg-blue-900 text-white'
-                          : 'bg-white text-gray-800 shadow-sm'
-                      )}
-                    >
-                      {message.sender === 'bot' ? (
-                        <FormattedScholarshipMessage 
-                          text={message.text} 
-                          onScholarshipClick={handleScholarshipNameClick}
-                          onViewDetails={handleViewScholarshipDetails}
-                          scholarships={message.scholarships}
-                        />
-                      ) : (
-                        message.text
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Scholarship buttons with dropdown menu */}
-                  {message.sender === 'bot' && message.scholarships && message.scholarships.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2 justify-start pl-2">
-                      {message.scholarships.map((scholarship, index) => (
-                        <div key={index} className="flex items-center gap-1 bg-blue-100 rounded-full hover:bg-blue-200 transition-colors">
-                          <button
-                            onClick={() => handleQuickReply(scholarship.name)}
-                            className="px-4 py-1.5 text-blue-800 text-xs font-medium text-left"
-                          >
-                            {scholarship.name}
-                          </button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className="pr-2 pl-1 py-1.5 text-blue-800 hover:text-blue-900 transition-colors"
-                                aria-label="Scholarship options"
-                              >
-                                <MoreVertical className="w-3.5 h-3.5" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                              <DropdownMenuItem
-                                onClick={() => handleViewScholarshipDetails(scholarship.id)}
-                                className="cursor-pointer"
-                              >
-                                <Eye className="w-4 h-4 mr-2" />
-                                View scholarship details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleAskScholarship(scholarship.name)}
-                                className="cursor-pointer"
-                              >
-                                <MessageSquare className="w-4 h-4 mr-2" />
-                                Ask scholarships
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {/* Fallback for legacy API responses */}
-                  {message.sender === 'bot' && !message.scholarships && message.scholarship_names && message.scholarship_names.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2 justify-start pl-2">
-                      {message.scholarship_names.map((name, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleQuickReply(name)}
-                          className="px-4 py-1.5 bg-blue-100 text-blue-800 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors text-left"
-                        >
-                          {name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                </Fragment> // KẾT THÚC SỬA ĐỔI
-              ))}
-
-              {/* Thinking indicator with progressive stages */}
-              {isThinking && (
-                <div className="flex justify-start">
-                  <div className="bg-white text-gray-800 shadow-sm rounded-lg p-3 text-sm">
-                    <div className="flex items-center space-x-1">
-                      <span>
-                        {loadingStage === 1 && 'Parsing filter user query'}
-                        {loadingStage === 2 && 'Querying DB vector'}
-                        {loadingStage === 3 && 'Filtering results'}
-                        {loadingStage === 4 && 'Generating final results'}
-                      </span>
-                      <span className="flex space-x-1">
-                        <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
-                        <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
-                        <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Quick Reply Buttons */}
-              {messages.length === 1 && (
-                <div className="space-y-3 px-2">
-                  <div className="text-xs font-medium text-gray-500 text-center mb-3">
-                    Try asking me:
-                  </div>
-                  <button
-                    onClick={() => handleReplyFromSuggestion('Find full-ride Data Science Master\'s scholarships in the US')}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-gray-800 rounded-xl text-sm text-left border border-blue-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md group"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">🎓</span>
-                      <span className="flex-1 leading-relaxed">Find full-ride Data Science Master's scholarships in the US</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleReplyFromSuggestion("Help me find some master's scholarships of Mathematics for women")}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-gray-800 rounded-xl text-sm text-left border border-purple-200 hover:border-purple-300 transition-all duration-200 shadow-sm hover:shadow-md group"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-purple-600 font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">🌍</span>
-                      <span className="flex-1 leading-relaxed">Help me find some master's scholarships of Mathematics for women</span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleReplyFromSuggestion('Suggest scholarships suitable for GPA 3.0/4.0')}
-                    className="w-full px-4 py-3 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-gray-800 rounded-xl text-sm text-left border border-green-200 hover:border-green-300 transition-all duration-200 shadow-sm hover:shadow-md group"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-green-600 font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">📊</span>
-                      <span className="flex-1 leading-relaxed">Suggest scholarships suitable for GPA 3.0/4.0</span>
-                    </div>
-                  </button>
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area */}
-            <div className="p-4 bg-white border-t border-gray-200 rounded-b-lg">
-              <div className="flex items-center space-x-2">
-                <button
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label="Emoji"
-                >
-                  <Smile className="w-5 h-5 text-gray-500" />
-                </button>
-                <button
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  aria-label="Attach"
-                >
-                  <Paperclip className="w-5 h-5 text-gray-500" />
-                </button>
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendFromInput()} // SỬA ĐỔI: Gọi hàm mới
-                  placeholder="Enter your message..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                />
-                {isThinking ? (
-                  <button
-                    onClick={handleStop}
-                    className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                    aria-label="Stop"
-                  >
-                    <div className="w-3 h-3 bg-white rounded-sm" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSendFromInput} // SỬA ĐỔI: Gọi hàm mới
-                    className="p-3 bg-blue-900 text-white rounded-full hover:bg-blue-800 transition-colors"
-                    aria-label="Send"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                )}
-              </div>
-            </div>
+            {selectedPlan === 'basic' ? (
+              <ChatboxBasic
+                messages={messages}
+                inputValue={inputValue}
+                isThinking={isThinking}
+                loadingStage={loadingStage}
+                messagesEndRef={messagesEndRef}
+                onInputChange={setInputValue}
+                onSend={handleSend}
+                onStop={handleStop}
+                onQuickReply={handleQuickReply}
+                onViewScholarshipDetails={handleViewScholarshipDetails}
+                onAskScholarship={handleAskScholarship}
+                onScholarshipNameClick={handleScholarshipNameClick}
+              />
+            ) : (
+              <ChatboxPro
+                messages={messages}
+                inputValue={inputValue}
+                isThinking={isThinking}
+                loadingStage={loadingStage}
+                messagesEndRef={messagesEndRef}
+                onInputChange={setInputValue}
+                onSend={handleSend}
+                onStop={handleStop}
+                onQuickReply={handleQuickReply}
+                onViewScholarshipDetails={handleViewScholarshipDetails}
+                onAskScholarship={handleAskScholarship}
+                onScholarshipNameClick={handleScholarshipNameClick}
+              />
+            )}
           </>
         )}
       </div>
