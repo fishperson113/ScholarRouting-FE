@@ -61,8 +61,28 @@ export function ChatboxPro(props: ChatboxProProps) {
 ### For Both Plans
 Edit `src/components/chatbot/chatbox-base.tsx` to add shared functionality.
 
+## Pro Plan Features
+
+### Profile Integration Toggle
+The Pro plan includes a toggle button that allows users to enable/disable using their profile information for personalized scholarship recommendations.
+
+**Location**: Top of the chatbox (banner above messages)
+
+**Features**:
+- Toggle switch with on/off states
+- Visual feedback when enabled (purple theme)
+- Informational message showing what data will be used
+- State persisted in localStorage
+- Automatically sends `use_profile` flag to API
+
+**Implementation**:
+- State managed in `chatbot_overview.tsx`
+- UI rendered in `chatbox-pro.tsx`
+- API receives `use_profile: true/false` in request body
+
 ## Benefits
 - **Separation of Concerns**: Each plan has its own component
 - **Code Reusability**: Common functionality in ChatboxBase
 - **Easy Maintenance**: Changes to one plan don't affect the other
 - **Scalability**: Easy to add plan-specific features
+- **Plan-Specific Features**: Pro plan has profile integration, Basic plan remains simple

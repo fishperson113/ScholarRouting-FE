@@ -93,6 +93,14 @@ export function Chatbot() {
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [loadingStage, setLoadingStage] = useState(0);
+  const [useProfile, setUseProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      return saved ? JSON.parse(saved).useProfile ?? false : false;
+    } catch {
+      return false;
+    }
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const currentQueryRef = useRef<string>('');
@@ -107,12 +115,13 @@ export function Chatbot() {
         selectedPlan,
         isMinimized,
         messages,
+        useProfile,
       };
       localStorage.setItem(CHATBOT_STORAGE_KEY, JSON.stringify(state));
     } catch (error) {
       console.error('Failed to save chatbot state:', error);
     }
-  }, [isOpen, showPlanSelection, selectedPlan, isMinimized, messages]);
+  }, [isOpen, showPlanSelection, selectedPlan, isMinimized, messages, useProfile]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -237,7 +246,8 @@ export function Chatbot() {
         body: JSON.stringify({ 
           query,
           plan: selectedPlan,
-          user_id: user.data?.uid || null
+          user_id: user.data?.uid || null,
+          use_profile: selectedPlan === 'pro' ? useProfile : false
         }),
         signal: abortControllerRef.current.signal,
       });
@@ -615,6 +625,8 @@ export function Chatbot() {
                 onViewScholarshipDetails={handleViewScholarshipDetails}
                 onAskScholarship={handleAskScholarship}
                 onScholarshipNameClick={handleScholarshipNameClick}
+                useProfile={useProfile}
+                onUseProfileChange={setUseProfile}
               />
             )}
           </>
