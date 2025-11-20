@@ -95,7 +95,7 @@ const LandingRoute = () => {
                     <Globe className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
-                <div className="text-4xl font-bold text-gray-900 mb-2">2,500+</div>
+                <div className="text-4xl font-bold text-gray-900 mb-2">400+</div>
                 <div className="text-gray-600">Active Scholarships</div>
               </div>
 
