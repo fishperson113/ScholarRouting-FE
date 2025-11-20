@@ -378,7 +378,7 @@ const ApplicationsRoute = () => {
                     Status
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
-                    Deadline
+                    Applied Date
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
                     Notes
