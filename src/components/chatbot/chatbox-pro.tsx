@@ -60,7 +60,7 @@ export function ChatboxPro(props: ChatboxProProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 flex-1">
             <User className="w-4 h-4 text-purple-600" />
-            <span className="text-sm text-gray-700">Use my personal academy information for personalized results</span>
+            <span className="text-sm text-gray-700">Use my academic profile for personalized results</span>
           </div>
           <button
             onClick={handleToggleProfile}
