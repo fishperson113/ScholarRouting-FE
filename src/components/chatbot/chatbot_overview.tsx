@@ -988,12 +988,12 @@ export function Chatbot() {
                     </div>
                   </button>
                   <button
-                    onClick={() => handleReplyFromSuggestion('Help me find Australia scholarships accepting IELTS 7.0')}
+                    onClick={() => handleReplyFromSuggestion('Help me find Australia scholarships accepted SAT 1400')}
                     className="w-full px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-gray-800 rounded-xl text-sm text-left border border-purple-200 hover:border-purple-300 transition-all duration-200 shadow-sm hover:shadow-md group"
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-purple-600 font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">🌍</span>
-                      <span className="flex-1 leading-relaxed">Help me find Australia scholarships accepting IELTS 7.0</span>
+                      <span className="flex-1 leading-relaxed">Help me find Australia scholarships accepted SAT 1400</span>
                     </div>
                   </button>
                   <button
