@@ -993,7 +993,7 @@ export function Chatbot() {
                   >
                     <div className="flex items-start gap-3">
                       <span className="text-purple-600 font-semibold text-base mt-0.5 group-hover:scale-110 transition-transform">🌍</span>
-                      <span className="flex-1 leading-relaxed">Help me find European scholarships accepting TOEIC 700</span>
+                      <span className="flex-1 leading-relaxed">Help me find Australia scholarships accepting IELTS 7.0</span>
                     </div>
                   </button>
                   <button
