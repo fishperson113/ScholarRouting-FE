@@ -70,11 +70,9 @@ export const ScholarshipSidebarFilters = ({
 
   // Default degree levels
   const defaultDegreeLevels = [
-    "Bachelor's Degree",
-    "Master's Degree",
+    "Bachelor",
+    "Master",
     "PhD",
-    "Associate Degree",
-    "Professional Degree"
   ];
 
   return (
@@ -144,7 +142,6 @@ export const ScholarshipSidebarFilters = ({
           <option value="">All Types</option>
           <option value="Government">Government</option>
           <option value="University">University</option>
-          <option value="Private">Private</option>
           <option value="Organization">Organization</option>
         </select>
       </div>
