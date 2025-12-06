@@ -6,10 +6,8 @@ import type { ScholarshipFilters } from '@/types/scholarship';
 // Default degree levels
 const defaultDegreeLevels = [
   "Bachelor",
-  "Master",
-  "PhD",
-  "Associate Degree",
-  "Professional Degree"
+    "Master",
+    "PhD",
 ];
 
 interface ScholarshipFiltersProps {
