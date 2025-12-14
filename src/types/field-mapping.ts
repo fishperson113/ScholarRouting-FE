@@ -5,7 +5,7 @@ export const SCHOLARSHIP_FIELD_MAPPING = {
   country: 'Country',
   type: 'Scholarship_Type',
   fundingLevel: 'Funding_Level',
-  degreeLevel: 'Required_Degree',
+  degreeLevel: 'Wanted_Degree',
   fieldOfStudy: 'Eligible_Field_Group',
 } as const;
 
