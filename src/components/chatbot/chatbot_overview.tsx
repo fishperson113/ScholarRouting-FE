@@ -396,8 +396,8 @@ export function Chatbot() {
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">SR</span>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
+                <img src="/Logo_white.png" alt="SR Logo" className="w-full h-full object-contain" />
               </div>
               <div>
                 <div className="font-semibold">Choose Your Plan</div>
@@ -516,35 +516,44 @@ export function Chatbot() {
       <div
         className={cn(
           'scholarship-routing-chat-pro bg-white rounded-lg shadow-2xl transition-all duration-300',
-          isMinimized ? 'w-80 h-16' : 'w-[460px] h-[600px]',
+          isMinimized ? 'w-96 h-24' : 'w-[460px] h-[600px]',
           'flex flex-col'
         )}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white p-4 rounded-t-lg flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            {/* Avatar */}
-            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">SR</span>
+          <div className="flex items-center space-x-3 flex-1 min-w-0">
+            {/* Avatar - Complete Circle Logo */}
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden p-1">
+              <img src="/Logo.png" alt="SR Logo" className="w-full h-full object-contain" />
             </div>
             
             {/* Name and Status */}
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold">Chat with</span>
-                {selectedPlan && (
+            <div className="flex-1 min-w-0">
+              {/* Badge at the top */}
+              {selectedPlan && (
+                <div className="mb-1">
                   <span className={cn(
-                    "text-xs font-bold px-2 py-0.5 rounded-full",
+                    "text-xs font-bold px-2.5 py-0.5 rounded-full inline-block",
                     selectedPlan === 'pro' 
                       ? "bg-purple-500 text-white" 
                       : "bg-blue-500 text-white"
                   )}>
                     {selectedPlan.toUpperCase()}
                   </span>
-                )}
+                </div>
+              )}
+              
+              {/* Title - Split into 2 lines */}
+              <div className="font-semibold text-base leading-snug">
+                <div>Chat with</div>
+                <div>Scholarship Routing Bot</div>
               </div>
-              <div className="text-sm">Scholarship Routing Bot</div>
-              <div className="text-xs text-blue-200">We're online</div>
+              
+              {/* Status - Only show when not minimized */}
+              {!isMinimized && (
+                <div className="text-xs text-blue-200 mt-1">We're online</div>
+              )}
             </div>
           </div>
 
