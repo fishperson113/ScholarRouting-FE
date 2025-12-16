@@ -17,8 +17,28 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
   const { collection = 'scholarships_403', initialPageSize = 20, onError } = options || {};
   const { error: showError } = useToast();
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState<ScholarshipFilters>({});
+  // Load filters from localStorage on mount
+  const getInitialFilters = (): ScholarshipFilters => {
+    try {
+      const savedFilters = localStorage.getItem('scholarship-filters');
+      return savedFilters ? JSON.parse(savedFilters) : {};
+    } catch (error) {
+      console.error('Error loading filters from localStorage:', error);
+      return {};
+    }
+  };
+
+  const getInitialSearchQuery = (): string => {
+    try {
+      return localStorage.getItem('scholarship-search-query') || '';
+    } catch (error) {
+      console.error('Error loading search query from localStorage:', error);
+      return '';
+    }
+  };
+
+  const [searchQuery, setSearchQuery] = useState(getInitialSearchQuery);
+  const [filters, setFilters] = useState<ScholarshipFilters>(getInitialFilters);
   const [scholarships, setScholarships] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,6 +46,24 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
   const [hasMore, setHasMore] = useState(true);
 
   const filterMutation = useScholarshipFilter();
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('scholarship-filters', JSON.stringify(filters));
+    } catch (error) {
+      console.error('Error saving filters to localStorage:', error);
+    }
+  }, [filters]);
+
+  // Save search query to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('scholarship-search-query', searchQuery);
+    } catch (error) {
+      console.error('Error saving search query to localStorage:', error);
+    }
+  }, [searchQuery]);
 
   // Reset and load scholarships when filters or search changes
   useEffect(() => {
