@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { Search, Filter, ChevronDown, Loader2 } from 'lucide-react';
+import { Search, Menu, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useScholarships, useScholarshipCard } from '@/hooks';
 import type { ScholarshipFilters } from '@/types';
-import { ScholarshipFiltersComponent } from '@/features/scholarships/components/scholarship-filters';
 import { ScholarshipSidebarFilters } from '@/features/scholarships/components/scholarship-sidebar-filters';
 import { ScholarshipCard } from '@/features/scholarships/components';
 import { Chatbot } from '@/components/chatbot';
 
 const ScholarshipRoute = () => {
-  const [selectedFilter, setSelectedFilter] = useState('Best Match');
-  const [showFilters, setShowFilters] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
   const {
     scholarships: rawScholarships,
@@ -58,17 +56,17 @@ const ScholarshipRoute = () => {
         )}
       </div>
 
-      {/* Filters and Results Count */}
+      {/* Filters Toggle and Results Count */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center justify-center gap-2 px-6 py-2 min-w-[120px] border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 transition-all duration-300 ease-in-out text-sm font-medium"
-          >
-            <span className="whitespace-nowrap">Filters</span>
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          <span className="inline-flex items-center gap-2">
+            {isSidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            <span>{isSidebarOpen ? 'Hide' : 'Show'} Filters</span>
+          </span>
+        </Button>
         
         <div className="text-sm text-gray-600">
           <strong>{total}</strong> scholarships found
@@ -77,8 +75,8 @@ const ScholarshipRoute = () => {
 
       {/* Main Content Area with Sidebar */}
       <div className="flex gap-6">
-        {/* Sidebar Filters - Show when filters are active */}
-        {hasActiveFilters && (
+        {/* Sidebar Filters */}
+        {isSidebarOpen && (
           <div className="flex-shrink-0">
             <ScholarshipSidebarFilters
               filters={filters}
@@ -152,16 +150,8 @@ const ScholarshipRoute = () => {
           )}
         </div>
       </div>
-
-      {/* Filter Modal */}
-      <ScholarshipFiltersComponent
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        isVisible={showFilters}
-        onClose={() => setShowFilters(false)}
-      />
       </div>
-
+      
       {/* Chatbot */}
       <Chatbot />
     </div>
