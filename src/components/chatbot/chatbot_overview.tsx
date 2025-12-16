@@ -28,60 +28,8 @@ export function Chatbot() {
   const user = useUser();
   const navigate = useNavigate();
   
-  // Initialize state from localStorage
-  const [isOpen, setIsOpen] = useState(() => {
-    try {
-      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
-      return saved ? JSON.parse(saved).isOpen : false;
-    } catch {
-      return false;
-    }
-  });
-  
-  const [showPlanSelection, setShowPlanSelection] = useState(() => {
-    try {
-      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
-      return saved ? JSON.parse(saved).showPlanSelection : false;
-    } catch {
-      return false;
-    }
-  });
-  
-  const [selectedPlan, setSelectedPlan] = useState<ChatbotPlan | null>(() => {
-    try {
-      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
-      return saved ? JSON.parse(saved).selectedPlan : null;
-    } catch {
-      return null;
-    }
-  });
-  
-  const [isMinimized, setIsMinimized] = useState(() => {
-    try {
-      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
-      return saved ? JSON.parse(saved).isMinimized : false;
-    } catch {
-      return false;
-    }
-  });
-  
-  const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.messages && Array.isArray(parsed.messages)) {
-          return parsed.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp),
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load messages from localStorage:', error);
-    }
-    
-    // Dynamic welcome message based on user status
+  // Helper function to get initial welcome message
+  const getWelcomeMessage = (): Message[] => {
     const welcomeText = user.data 
       ? `Hi ${user.data.displayName || 'there'}! 👋 I'm so happy to help you find suitable scholarships.`
       : 'Hi there! 👋 I\'m your scholarship assistant. I can help you find scholarships even as a guest, but sign in for personalized recommendations!';
@@ -94,6 +42,101 @@ export function Chatbot() {
         timestamp: new Date(),
       },
     ];
+  };
+
+  // Helper function to check if stored data belongs to current user
+  const isValidStoredData = (saved: any): boolean => {
+    const currentUserId = user.data?.uid || 'guest';
+    const storedUserId = saved.userId;
+    
+    // For guest users, always start fresh (don't use stored data)
+    if (currentUserId === 'guest' || currentUserId.startsWith('guest_')) {
+      return false;
+    }
+    
+    // For authenticated users, check if the stored data belongs to them
+    return storedUserId === currentUserId;
+  };
+  
+  // Initialize state from localStorage
+  const [isOpen, setIsOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (isValidStoredData(parsed)) {
+          return parsed.isOpen;
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    return false;
+  });
+  
+  const [showPlanSelection, setShowPlanSelection] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (isValidStoredData(parsed)) {
+          return parsed.showPlanSelection;
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    return false;
+  });
+  
+  const [selectedPlan, setSelectedPlan] = useState<ChatbotPlan | null>(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (isValidStoredData(parsed)) {
+          return parsed.selectedPlan;
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    return null;
+  });
+  
+  const [isMinimized, setIsMinimized] = useState(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (isValidStoredData(parsed)) {
+          return parsed.isMinimized;
+        }
+      }
+    } catch {
+      // Ignore errors
+    }
+    return false;
+  });
+  
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (isValidStoredData(parsed) && parsed.messages && Array.isArray(parsed.messages)) {
+          return parsed.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp),
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load messages from localStorage:', error);
+    }
+    
+    // Return welcome message (fresh start for guests or if no valid data)
+    return getWelcomeMessage();
   });
   
   const [inputValue, setInputValue] = useState('');
@@ -102,10 +145,16 @@ export function Chatbot() {
   const [useProfile, setUseProfile] = useState(() => {
     try {
       const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
-      return saved ? JSON.parse(saved).useProfile ?? false : false;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (isValidStoredData(parsed)) {
+          return parsed.useProfile ?? false;
+        }
+      }
     } catch {
-      return false;
+      // Ignore errors
     }
+    return false;
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -115,7 +164,9 @@ export function Chatbot() {
   // Save state to localStorage whenever it changes
   useEffect(() => {
     try {
+      const currentUserId = user.data?.uid || 'guest';
       const state = {
+        userId: currentUserId,
         isOpen,
         showPlanSelection,
         selectedPlan,
@@ -127,7 +178,41 @@ export function Chatbot() {
     } catch (error) {
       console.error('Failed to save chatbot state:', error);
     }
-  }, [isOpen, showPlanSelection, selectedPlan, isMinimized, messages, useProfile]);
+  }, [isOpen, showPlanSelection, selectedPlan, isMinimized, messages, useProfile, user.data?.uid]);
+
+  // Clear chat history when user changes
+  useEffect(() => {
+    const currentUserId = user.data?.uid || 'guest';
+    
+    try {
+      const saved = localStorage.getItem(CHATBOT_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const storedUserId = parsed.userId;
+        
+        // If user has changed or current user is guest, reset chat
+        if (storedUserId !== currentUserId || currentUserId === 'guest' || currentUserId.startsWith('guest_')) {
+          setMessages(getWelcomeMessage());
+          setInputValue('');
+          setIsThinking(false);
+          setLoadingStage(0);
+          setUseProfile(false);
+          
+          // Clear any ongoing requests
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+            abortControllerRef.current = null;
+          }
+          if (loadingIntervalRef.current) {
+            clearInterval(loadingIntervalRef.current);
+            loadingIntervalRef.current = null;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check user change:', error);
+    }
+  }, [user.data?.uid]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -202,20 +287,8 @@ export function Chatbot() {
   };
 
   const handleNewChat = () => {
-    // Dynamic welcome message based on user status
-    const welcomeText = user.data 
-      ? `Hi ${user.data.displayName || 'there'}! 👋 I'm so happy to help you find suitable scholarships.`
-      : 'Hi there! 👋 I\'m your scholarship assistant. I can help you find scholarships even as a guest, but sign in for personalized recommendations!';
-    
     // Reset messages to initial welcome message
-    setMessages([
-      {
-        id: Date.now().toString(),
-        text: welcomeText,
-        sender: 'bot',
-        timestamp: new Date(),
-      },
-    ]);
+    setMessages(getWelcomeMessage());
     // Clear input
     setInputValue('');
     // Reset thinking state
