@@ -2,6 +2,7 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithCustomToken,
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
@@ -18,6 +19,73 @@ const googleProvider = new GoogleAuthProvider();
 
 const API_URL = env.API_URL;
 
+// Guest session type
+interface GuestSession {
+  guest_token: string;
+  uid: string;
+  expires_at: string;
+  is_anonymous: boolean;
+  display_name: string;
+}
+
+// Create a guest user object from session
+const createGuestUser = (session: GuestSession): FirebaseUser => {
+  return {
+    uid: session.uid,
+    displayName: session.display_name,
+    email: null,
+    emailVerified: false,
+    isAnonymous: true,
+    metadata: {},
+    providerData: [],
+    refreshToken: session.guest_token,
+    tenantId: null,
+    delete: async () => {},
+    getIdToken: async () => session.guest_token,
+    getIdTokenResult: async () => ({} as any),
+    reload: async () => {},
+    toJSON: () => ({}),
+    phoneNumber: null,
+    photoURL: null,
+    providerId: 'guest',
+  } as FirebaseUser;
+};
+
+export const useAnonymousSignIn = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async () => {
+      // Step 1: Create guest session via backend
+      const response = await fetch(`${API_URL}/auth/guest`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Failed to create guest session');
+      }
+      
+      const session: GuestSession = await response.json();
+      
+      // Step 2: Store in localStorage with expiration
+      localStorage.setItem('guest_session', JSON.stringify(session));
+      
+      // Step 3: Create a guest user object
+      const guestUser = createGuestUser(session);
+      
+      return guestUser;
+    },
+    onSuccess: async (user) => {
+      queryClient.setQueryData(['firebase-user'], user);
+      await queryClient.invalidateQueries({ queryKey: ['firebase-user'] });
+    },
+  });
+};
+
 // Extended Firebase User type with custom properties
 export type ExtendedFirebaseUser = FirebaseUser & {
   firstName?: string;
@@ -31,6 +99,28 @@ export const useFirebaseUser = () => {
   return useQuery({
     queryKey: ['firebase-user'],
     queryFn: () => new Promise<ExtendedFirebaseUser | null>((resolve) => {
+      // Check for guest session first
+      const guestSessionStr = localStorage.getItem('guest_session');
+      if (guestSessionStr) {
+        try {
+          const session: GuestSession = JSON.parse(guestSessionStr);
+          const expiresAt = new Date(session.expires_at);
+          
+          // Check if session is still valid
+          if (expiresAt > new Date()) {
+            const guestUser = createGuestUser(session);
+            resolve(guestUser as ExtendedFirebaseUser);
+            return;
+          } else {
+            // Session expired, remove it
+            localStorage.removeItem('guest_session');
+          }
+        } catch (error) {
+          console.error('Failed to parse guest session:', error);
+          localStorage.removeItem('guest_session');
+        }
+      }
+      
       // Wait for Firebase to restore the session
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         // Don't unsubscribe immediately - let it complete auth state restoration
@@ -146,6 +236,8 @@ export const useFirebaseLogout = () => {
   
   return useMutation({
     mutationFn: async () => {
+      // Clear guest session if exists
+      localStorage.removeItem('guest_session');
       await signOut(auth);
     },
     onSuccess: () => {

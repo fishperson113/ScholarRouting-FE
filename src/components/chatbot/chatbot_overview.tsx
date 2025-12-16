@@ -80,10 +80,16 @@ export function Chatbot() {
     } catch (error) {
       console.error('Failed to load messages from localStorage:', error);
     }
+    
+    // Dynamic welcome message based on user status
+    const welcomeText = user.data 
+      ? `Hi ${user.data.displayName || 'there'}! 👋 I'm so happy to help you find suitable scholarships.`
+      : 'Hi there! 👋 I\'m your scholarship assistant. I can help you find scholarships even as a guest, but sign in for personalized recommendations!';
+    
     return [
       {
         id: '1',
-        text: 'Hi there! Nice to see you 👋. I am so happy that help you choose suitable scholarships',
+        text: welcomeText,
         sender: 'bot',
         timestamp: new Date(),
       },
@@ -196,11 +202,16 @@ export function Chatbot() {
   };
 
   const handleNewChat = () => {
+    // Dynamic welcome message based on user status
+    const welcomeText = user.data 
+      ? `Hi ${user.data.displayName || 'there'}! 👋 I'm so happy to help you find suitable scholarships.`
+      : 'Hi there! 👋 I\'m your scholarship assistant. I can help you find scholarships even as a guest, but sign in for personalized recommendations!';
+    
     // Reset messages to initial welcome message
     setMessages([
       {
         id: Date.now().toString(),
-        text: 'Hi! I am a Scholarship Routing virtual assistant. How would you like me to help you today?',
+        text: welcomeText,
         sender: 'bot',
         timestamp: new Date(),
       },

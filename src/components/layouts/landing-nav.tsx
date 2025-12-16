@@ -9,6 +9,7 @@ import { AuthDialog } from '@/components/auth';
 import { paths } from '@/config/paths';
 import { useUser, useLogout } from '@/lib/auth';
 import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 // Helper functions
 const getInitials = (firstName?: string, lastName?: string, displayName?: string, email?: string) => {
@@ -64,6 +65,7 @@ export const LandingNav = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { warning } = useToast();
 
   // Get user profile data from Firestore
   const userProfile = useUserProfile(user.data?.uid);
@@ -112,58 +114,51 @@ export const LandingNav = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center justify-center flex-1 gap-12">
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to={paths.app.scholarships.getHref()}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  🔍 Scholarships
-                </Link>
-                <Link
-                  to={paths.app.applications.getHref()}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  📄 My Applications
-                </Link>
-                <Link
-                  to={paths.app.profile.getHref()}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  👤 Profile
-                </Link>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthDialogOpen(true);
-                  }}
-                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                >
-                  🔍 Scholarships
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthDialogOpen(true);
-                  }}
-                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                >
-                  📄 My Applications
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthDialogOpen(true);
-                  }}
-                  className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                >
-                  👤 Profile
-                </button>
-              </>
-            )}
+            <Link
+              to={isAuthenticated ? paths.app.scholarships.getHref() : '#'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  warning({
+                    title: 'Authentication Required',
+                    message: 'Please sign in to access Scholarships',
+                  });
+                }
+              }}
+              className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+            >
+              🔍 Scholarships
+            </Link>
+            <Link
+              to={isAuthenticated ? paths.app.applications.getHref() : '#'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  warning({
+                    title: 'Authentication Required',
+                    message: 'Please sign in to access My Applications',
+                  });
+                }
+              }}
+              className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+            >
+              📄 My Applications
+            </Link>
+            <Link
+              to={isAuthenticated ? paths.app.profile.getHref() : '#'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  warning({
+                    title: 'Authentication Required',
+                    message: 'Please sign in to access your Profile',
+                  });
+                }
+              }}
+              className="text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
+            >
+              👤 Profile
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -272,86 +267,78 @@ export const LandingNav = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 mobile-menu-container">
           <div className="px-4 py-2 space-y-2">
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to={paths.app.scholarships.getHref()}
-                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  🔍 Scholarships
-                </Link>
-                <Link
-                  to={paths.app.applications.getHref()}
-                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  📄 My Applications
-                </Link>
-                <Link
-                  to={paths.app.profile.getHref()}
-                  className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  👤 Profile
-                </Link>
-              </>
-            ) : (
-              <>
-                <button
+            <Link
+              to={isAuthenticated ? paths.app.scholarships.getHref() : '#'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  warning({
+                    title: 'Authentication Required',
+                    message: 'Please sign in to access Scholarships',
+                  });
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+            >
+              🔍 Scholarships
+            </Link>
+            <Link
+              to={isAuthenticated ? paths.app.applications.getHref() : '#'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  warning({
+                    title: 'Authentication Required',
+                    message: 'Please sign in to access My Applications',
+                  });
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+            >
+              📄 My Applications
+            </Link>
+            <Link
+              to={isAuthenticated ? paths.app.profile.getHref() : '#'}
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  warning({
+                    title: 'Authentication Required',
+                    message: 'Please sign in to access your Profile',
+                  });
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="block px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+            >
+              👤 Profile
+            </Link>
+            {!isAuthenticated && (
+              <div className="border-t border-gray-200 pt-2 mt-2">
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     setAuthMode('login');
                     setIsAuthDialogOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  className="w-full justify-start text-gray-600 hover:text-gray-900"
                 >
-                  🔍 Scholarships
-                </button>
-                <button
+                  Sign in
+                </Button>
+                <Button
                   onClick={() => {
-                    setAuthMode('login');
+                    setAuthMode('register');
                     setIsAuthDialogOpen(true);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
+                  className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white"
                 >
-                  📄 My Applications
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setIsAuthDialogOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition-colors"
-                >
-                  👤 Profile
-                </button>
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setAuthMode('login');
-                      setIsAuthDialogOpen(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full justify-start text-gray-600 hover:text-gray-900"
-                  >
-                    Sign in
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setAuthMode('register');
-                      setIsAuthDialogOpen(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full mt-2 bg-purple-600 hover:bg-purple-700 text-white"
-                  >
-                    Sign up
-                  </Button>
-                </div>
-              </>
+                  Sign up
+                </Button>
+              </div>
             )}
           </div>
         </div>

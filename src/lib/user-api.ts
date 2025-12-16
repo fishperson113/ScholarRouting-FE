@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { env } from '@/config/env';
 import { auth } from './firebase';
+import { authenticatedFetch } from './api-client';
 import { UserProfile } from '@/types/user';
 
 const API_URL = env.API_URL;
@@ -20,7 +21,7 @@ export const useUserProfile = (uid?: string) => {
       const currentUid = uid || auth.currentUser?.uid;
       if (!currentUid) throw new Error('No user ID provided');
       
-      const response = await fetch(`${API_URL}/auth/profile/${currentUid}`);
+      const response = await authenticatedFetch(`${API_URL}/auth/profile/${currentUid}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch profile');
@@ -38,11 +39,8 @@ export const useUpdateProfile = () => {
   
   return useMutation({
     mutationFn: async ({ uid, data }: { uid: string; data: Partial<UserProfile> }) => {
-      const response = await fetch(`${API_URL}/auth/profile/${uid}`, {
+      const response = await authenticatedFetch(`${API_URL}/auth/profile/${uid}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(data),
       });
       

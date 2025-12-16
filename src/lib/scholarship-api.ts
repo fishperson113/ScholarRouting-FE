@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { env } from '@/config/env';
 import { auth } from './firebase';
+import { authenticatedFetch } from './api-client';
 import { ScholarshipInterest, ScholarshipApplication } from '@/types/scholarship';
 
 const API_URL = env.API_URL;
@@ -15,7 +16,7 @@ export const useScholarshipInterests = (uid?: string) => {
       const currentUid = uid || auth.currentUser?.uid;
       if (!currentUid) throw new Error('No user ID provided');
       
-      const response = await fetch(`${API_URL}/user/interests/${currentUid}`);
+      const response = await authenticatedFetch(`${API_URL}/user/interests/${currentUid}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch interests');
@@ -33,11 +34,8 @@ export const useAddScholarshipInterest = () => {
   
   return useMutation({
     mutationFn: async ({ uid, interest }: { uid: string; interest: ScholarshipInterest }) => {
-      const response = await fetch(`${API_URL}/user/interests/${uid}/add`, {
+      const response = await authenticatedFetch(`${API_URL}/user/interests/${uid}/add`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(interest),
       });
       
@@ -60,11 +58,8 @@ export const useUpdateScholarshipInterest = () => {
   
   return useMutation({
     mutationFn: async ({ uid, interest }: { uid: string; interest: Partial<ScholarshipInterest> & { scholarship_id: string } }) => {
-      const response = await fetch(`${API_URL}/user/interests/${uid}`, {
+      const response = await authenticatedFetch(`${API_URL}/user/interests/${uid}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(interest),
       });
       
@@ -87,7 +82,7 @@ export const useDeleteScholarshipInterest = () => {
   
   return useMutation({
     mutationFn: async ({ uid, scholarshipId }: { uid: string; scholarshipId: string }) => {
-      const response = await fetch(`${API_URL}/user/interests/${uid}/${scholarshipId}`, {
+      const response = await authenticatedFetch(`${API_URL}/user/interests/${uid}/${scholarshipId}`, {
         method: 'DELETE',
       });
       
@@ -113,32 +108,16 @@ export const useScholarshipApplications = (uid?: string) => {
     queryFn: async () => {
       const currentUid = uid || auth.currentUser?.uid;
       if (!currentUid) {
-        console.error('No user ID available for fetching applications');
         throw new Error('No user ID provided. Please log in.');
       }
       
-      const url = `${API_URL}/user/applications/${currentUid}`;
-      console.log('Fetching applications from:', url);
+      const response = await authenticatedFetch(`${API_URL}/user/applications/${currentUid}`);
       
-      try {
-        const response = await fetch(url);
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API Error Response:', errorText);
-          throw new Error(`Failed to fetch applications: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('Applications data:', data);
-        
-        return data as { uid: string; applications: ScholarshipApplication[] };
-      } catch (error) {
-        console.error('Error in useScholarshipApplications:', error);
-        throw error;
+      if (!response.ok) {
+        throw new Error(`Failed to fetch applications: ${response.status} ${response.statusText}`);
       }
+      
+      return response.json() as Promise<{ uid: string; applications: ScholarshipApplication[] }>;
     },
     enabled: !!uid || !!auth.currentUser,
     retry: 1,
@@ -152,11 +131,8 @@ export const useAddScholarshipApplication = () => {
   
   return useMutation({
     mutationFn: async ({ uid, application }: { uid: string; application: ScholarshipApplication }) => {
-      const response = await fetch(`${API_URL}/user/applications/${uid}/add`, {
+      const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}/add`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(application),
       });
       
@@ -179,11 +155,8 @@ export const useUpdateScholarshipApplication = () => {
   
   return useMutation({
     mutationFn: async ({ uid, application }: { uid: string; application: Partial<ScholarshipApplication> & { scholarship_id: string } }) => {
-      const response = await fetch(`${API_URL}/user/applications/${uid}`, {
+      const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(application),
       });
       
@@ -206,7 +179,7 @@ export const useDeleteScholarshipApplication = () => {
   
   return useMutation({
     mutationFn: async ({ uid, scholarshipId }: { uid: string; scholarshipId: string }) => {
-      const response = await fetch(`${API_URL}/user/applications/${uid}/${scholarshipId}`, {
+      const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}/${scholarshipId}`, {
         method: 'DELETE',
       });
       

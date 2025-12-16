@@ -12,9 +12,9 @@ import {
 import { paths } from '@/config/paths';
 import { LoginForm } from '@/features/auth/components/login-form';
 import { RegisterForm } from '@/features/auth/components/register-form';
-import { RoleSelectionDialog } from './role-selection-dialog';
 import { auth, db } from '@/lib/firebase';
 import { getRedirectPath, isAdmin } from '@/lib/authorization';
+import { useAuth } from '@/hooks/use-auth';
 
 type AuthDialogProps = {
   isOpen: boolean;
@@ -25,7 +25,6 @@ type AuthDialogProps = {
 
 export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }: AuthDialogProps) => {
   const [mode, setMode] = useState<'login' | 'register'>(defaultMode);
-  const [showRoleSelection, setShowRoleSelection] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -46,60 +45,13 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }
     const currentUser = auth.currentUser;
     if (!currentUser) return;
     
-    // Check if user is admin - skip role selection and navigate directly
-    if (isAdmin(currentUser)) {
-      const redirectPath = getRedirectPath(currentUser);
-      navigate(redirectPath, { replace: true });
-      onSuccess?.();
-      return;
-    }
-    
-    // For regular users, check if they have a role saved
-    try {
-      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-      const userData = userDoc.data();
-      
-      if (!userData?.role) {
-        // Show role selection for users without a role
-        setShowRoleSelection(true);
-      } else {
-        // Navigate to scholarships for users with existing role
-        const redirectPath = getRedirectPath(currentUser);
-        navigate(redirectPath, { replace: true });
-        onSuccess?.();
-      }
-    } catch (error) {
-      console.error('Error checking user role:', error);
-      // On error, show role selection to be safe
-      setShowRoleSelection(true);
-    }
-  };
-
-  const handleRoleSelect = async (role: string) => {
-    console.log('User selected role:', role);
-    
-    // Save role to user profile in Firestore
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      try {
-        await setDoc(
-          doc(db, 'users', currentUser.uid),
-          { role, roleSelectedAt: new Date().toISOString() },
-          { merge: true }
-        );
-        console.log('Role saved successfully');
-      } catch (error) {
-        console.error('Error saving role:', error);
-      }
-    }
-    
-    // Navigate based on user role
+    // Navigate to appropriate page based on user type
     const redirectPath = getRedirectPath(currentUser);
     navigate(redirectPath, { replace: true });
-    
-    // Call parent's onSuccess if provided
     onSuccess?.();
   };
+
+  const { continueAsGuest, isLoading } = useAuth({ onSuccess: handleSuccess });
 
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
@@ -146,14 +98,22 @@ export const AuthDialog = ({ isOpen, onClose, defaultMode = 'login', onSuccess }
               </>
             )}
           </div>
+
+          {/* Continue as Guest Button */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <button
+              onClick={continueAsGuest}
+              disabled={isLoading}
+              className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Creating guest session...' : 'Continue as Guest'}
+            </button>
+            <p className="mt-2 text-xs text-center text-gray-500">
+              You can browse and use the chatbot without an account. Sign in later to save your preferences.
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
-
-      <RoleSelectionDialog
-        isOpen={showRoleSelection}
-        onClose={() => setShowRoleSelection(false)}
-        onRoleSelect={handleRoleSelect}
-      />
     </>
   );
 };

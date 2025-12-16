@@ -8,6 +8,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { paths } from '@/config/paths';
 import { useUser, useLogout } from '@/lib/auth';
 import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 // Helper functions
 const getInitials = (firstName?: string, lastName?: string, displayName?: string, email?: string) => {
@@ -24,7 +25,7 @@ const getInitials = (firstName?: string, lastName?: string, displayName?: string
   if (email) {
     return email.charAt(0).toUpperCase();
   }
-  return 'U';
+  return 'G'; // G for Guest
 };
 
 const getDisplayName = (firstName?: string, lastName?: string, displayName?: string, email?: string) => {
@@ -37,7 +38,12 @@ const getDisplayName = (firstName?: string, lastName?: string, displayName?: str
   if (email) {
     return email.split('@')[0];
   }
-  return 'User';
+  return 'Guest';
+};
+
+// Helper to check if user is guest
+const isGuestUser = (uid?: string) => {
+  return uid?.startsWith('guest_') || false;
 };
 
 // Hook to get user profile data
@@ -49,7 +55,7 @@ const useUserProfile = (userId?: string) => {
       const userDoc = await getDoc(doc(db, 'users', userId));
       return userDoc.exists() ? userDoc.data() : null;
     },
-    enabled: !!userId,
+    enabled: !!userId && !isGuestUser(userId), // Don't fetch for guest users
   });
 };
 
@@ -58,10 +64,12 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const user = useUser();
   const logout = useLogout();
+  const isGuest = isGuestUser(user.data?.uid);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { warning } = useToast();
 
-  // Get user profile data from Firestore
+  // Get user profile data from Firestore (skip for guests)
   const userProfile = useUserProfile(user.data?.uid);
 
   // Combine Firebase user data with Firestore profile data
@@ -95,6 +103,16 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
     return location.pathname === path;
   };
 
+  // Redirect guest users away from protected routes
+  useEffect(() => {
+    if (isGuest && (
+      location.pathname === paths.app.applications.getHref() ||
+      location.pathname === paths.app.profile.getHref()
+    )) {
+      navigate(paths.app.scholarships.getHref(), { replace: true });
+    }
+  }, [isGuest, location.pathname, navigate]);
+
   return (
     <div className="min-h-screen">
       {/* Header Navigation */}
@@ -123,6 +141,15 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
               </Link>
               <Link
                 to={paths.app.applications.getHref()}
+                onClick={(e) => {
+                  if (isGuest) {
+                    e.preventDefault();
+                    warning({
+                      title: 'Authentication Required',
+                      message: 'Please sign in to access My Applications',
+                    });
+                  }
+                }}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActiveLink(paths.app.applications.getHref())
                     ? 'text-purple-600 bg-purple-50'
@@ -133,6 +160,15 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
               </Link>
               <Link
                 to={paths.app.profile.getHref()}
+                onClick={(e) => {
+                  if (isGuest) {
+                    e.preventDefault();
+                    warning({
+                      title: 'Authentication Required',
+                      message: 'Please sign in to access your Profile',
+                    });
+                  }
+                }}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActiveLink(paths.app.profile.getHref())
                     ? 'text-purple-600 bg-purple-50'
@@ -143,12 +179,23 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
               </Link>
             </div>
 
-            {/* Right side - User Profile */}
+            {/* Right Side - User Profile */}
             <div className="flex items-center space-x-4">
               {/* Notification Bell */}
-              <button className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              <button 
+                onClick={() => {
+                  if (isGuest) {
+                    warning({
+                      title: 'Authentication Required',
+                      message: 'Please sign in to view notifications',
+                    });
+                  }
+                }}
+                className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                disabled={isGuest}
+              >
+                <Bell className={`w-5 h-5 ${isGuest ? 'opacity-50' : ''}`} />
+                {!isGuest && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>}
               </button>
 
               {/* User Profile */}
@@ -176,11 +223,20 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
                 {/* Dropdown Menu */}
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
                     <Link
                       to={paths.app.profile.getHref()}
+                      onClick={(e) => {
+                        if (isGuest) {
+                          e.preventDefault();
+                          warning({
+                            title: 'Authentication Required',
+                            message: 'Please sign in to access your Profile',
+                          });
+                        }
+                        setIsProfileDropdownOpen(false);
+                      }}
                       className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                      onClick={() => setIsProfileDropdownOpen(false)}
                     >
                       <User className="w-4 h-4 mr-3" />
                       Profile

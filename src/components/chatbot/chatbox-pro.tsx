@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { User } from 'lucide-react';
+import { User, LogIn } from 'lucide-react';
 import { ChatboxBase, Message } from './chatbox-base';
 import { cn } from '@/utils/cn';
+import { useUser } from '@/lib/auth';
 
 interface ChatboxProProps {
   messages: Message[];
@@ -40,6 +41,8 @@ const PRO_SUGGESTIONS = [
 
 export function ChatboxPro(props: ChatboxProProps) {
   const [useProfile, setUseProfile] = useState(props.useProfile ?? false);
+  const user = useUser();
+  const isGuest = !user.data;
 
   useEffect(() => {
     if (props.useProfile !== undefined) {
@@ -48,6 +51,10 @@ export function ChatboxPro(props: ChatboxProProps) {
   }, [props.useProfile]);
 
   const handleToggleProfile = () => {
+    if (isGuest) {
+      // Don't allow profile usage for guest users
+      return;
+    }
     const newValue = !useProfile;
     setUseProfile(newValue);
     props.onUseProfileChange?.(newValue);
@@ -64,9 +71,10 @@ export function ChatboxPro(props: ChatboxProProps) {
           </div>
           <button
             onClick={handleToggleProfile}
+            disabled={isGuest}
             className={cn(
               'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-              useProfile ? 'bg-blue-600' : 'bg-gray-300'
+              isGuest ? 'bg-gray-300 cursor-not-allowed opacity-50' : (useProfile ? 'bg-blue-600' : 'bg-gray-300')
             )}
             role="switch"
             aria-checked={useProfile}
@@ -80,11 +88,16 @@ export function ChatboxPro(props: ChatboxProProps) {
             />
           </button>
         </div>
-        {useProfile && (
+        {isGuest ? (
+          <div className="mt-2 text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+            <LogIn className="w-3 h-3" />
+            <span>Sign in to use your academic profile for personalized scholarship recommendations</span>
+          </div>
+        ) : useProfile ? (
           <div className="mt-2 text-xs text-blue-700 bg-blue-100 px-3 py-1.5 rounded-md">
             ✓ Chatbot will use your GPA, major, and preferences for better response
           </div>
-        )}
+        ) : null}
       </div>
 
       <ChatboxBase

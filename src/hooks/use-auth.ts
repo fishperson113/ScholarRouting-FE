@@ -3,7 +3,8 @@ import { paths } from '@/config/paths';
 import { 
   useFirebaseLogin, 
   useFirebaseRegister,
-  useGoogleSignIn 
+  useGoogleSignIn,
+  useAnonymousSignIn
 } from '@/lib/firebase-auth';
 import { LoginInput, RegisterInput } from '@/lib/auth';
 import { useToast } from './use-toast';
@@ -19,6 +20,7 @@ export const useAuth = (options?: UseAuthOptions) => {
   const firebaseLogin = useFirebaseLogin();
   const firebaseRegister = useFirebaseRegister();
   const googleSignIn = useGoogleSignIn();
+  const anonymousSignIn = useAnonymousSignIn();
   const { success, error } = useToast();
 
   const { redirectTo, onSuccess } = options || {};
@@ -77,10 +79,26 @@ export const useAuth = (options?: UseAuthOptions) => {
     }
   };
 
+  const continueAsGuest = async () => {
+    try {
+      await anonymousSignIn.mutateAsync();
+      success({
+        title: 'Welcome, Guest!',
+        message: 'You can browse and use features without an account.',
+      });
+      handleSuccess();
+    } catch (err) {
+      const { title, message } = parseFirebaseAuthError(err);
+      error({ title, message });
+      throw err;
+    }
+  };
+
   return {
     login,
     register,
     loginWithGoogle,
-    isLoading: firebaseLogin.isPending || firebaseRegister.isPending || googleSignIn.isPending,
+    continueAsGuest,
+    isLoading: firebaseLogin.isPending || firebaseRegister.isPending || googleSignIn.isPending || anonymousSignIn.isPending,
   };
 };
