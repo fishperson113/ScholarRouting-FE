@@ -76,7 +76,7 @@ export const ScholarshipSidebarFilters = ({
   ];
 
   return (
-    <div className="w-72 bg-white border border-gray-200 rounded-lg p-4 space-y-6 h-fit sticky top-6">
+    <div className="w-full lg:w-72 bg-white border border-gray-200 rounded-lg p-4 space-y-6 h-fit lg:sticky lg:top-6">
       {/* Filters Header */}
       <div>
         <h3 className="text-base font-semibold text-gray-900">Filters</h3>
