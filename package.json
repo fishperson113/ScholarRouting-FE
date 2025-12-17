@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build --base=/",
+    "build:analyze": "tsc && vite build --base=/ && npx vite-bundle-visualizer",
     "preview": "vite preview",
     "test": "vitest",
     "test-e2e": "pm2 start \"yarn run-mock-server\" --name server && yarn playwright test",

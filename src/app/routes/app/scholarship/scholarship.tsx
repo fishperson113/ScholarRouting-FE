@@ -1,14 +1,24 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense, useEffect } from 'react';
 import { Search, Menu, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useScholarships, useScholarshipCard } from '@/hooks';
 import type { ScholarshipFilters } from '@/types';
 import { ScholarshipSidebarFilters } from '@/features/scholarships/components/scholarship-sidebar-filters';
 import { ScholarshipCard } from '@/features/scholarships/components';
-import { Chatbot } from '@/components/chatbot';
+
+// Lazy load chatbot - it's heavy and not critical for initial render
+const Chatbot = lazy(() => import('@/components/chatbot').then(module => ({ default: module.Chatbot })));
 
 const ScholarshipRoute = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Default closed on mobile for faster initial render
+  
+  // Detect if desktop for better UX
+  useEffect(() => {
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    if (isDesktop) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
   
   const {
     scholarships: rawScholarships,
@@ -24,8 +34,21 @@ const ScholarshipRoute = () => {
 
   const { scholarships, handleSave, handleViewDetails } = useScholarshipCard(rawScholarships);
 
+  // Debounce search input to reduce API calls
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localSearchQuery !== searchQuery) {
+        setSearch(localSearchQuery);
+      }
+    }, 300); // 300ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [localSearchQuery, searchQuery, setSearch]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
+    setLocalSearchQuery(e.target.value);
   };
 
   const handleFiltersChange = (newFilters: ScholarshipFilters) => {
@@ -45,7 +68,7 @@ const ScholarshipRoute = () => {
         <input
           type="text"
           placeholder="Search scholarships by name, university, country..."
-          value={searchQuery}
+          value={localSearchQuery}
           onChange={handleSearchChange}
           className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm md:text-base"
         />
@@ -153,8 +176,10 @@ const ScholarshipRoute = () => {
       </div>
       </div>
       
-      {/* Chatbot */}
-      <Chatbot />
+      {/* Chatbot - Lazy loaded */}
+      <Suspense fallback={null}>
+        <Chatbot />
+      </Suspense>
     </div>
   );
 };

@@ -5,7 +5,14 @@ export const queryConfig = {
     // throwOnError: true,
     refetchOnWindowFocus: false,
     retry: false,
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60 * 5, // 5 minutes - scholarships don't change frequently
+    gcTime: 1000 * 60 * 10, // 10 minutes cache (formerly cacheTime)
+    // Network mode for better offline/slow network handling
+    networkMode: 'online' as const,
+  },
+  mutations: {
+    // Don't retry mutations by default
+    retry: false,
   },
 } satisfies DefaultOptions;
 

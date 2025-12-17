@@ -1,4 +1,5 @@
 import type { ScholarshipFilters } from '@/types/scholarship';
+import { useMemo } from 'react';
 
 interface ScholarshipSidebarFiltersProps {
   filters: ScholarshipFilters;
@@ -24,8 +25,8 @@ export const ScholarshipSidebarFilters = ({
     onFiltersChange(newFilters);
   };
 
-  // Default countries list
-  const countries = [
+  // Memoize large country list to prevent recreation on every render
+  const countries = useMemo(() => [
     "Afghanistan", "Albania", "Algeria", "Antigua", "Australia", "Austria", "Azerbaijan",
 "Bahamas", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia",
 "Bosnia", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cambodia",
@@ -45,10 +46,10 @@ export const ScholarshipSidebarFilters = ({
 "Tajikistan", "Tanzania", "Thailand", "Togo", "Tonga", "Tunisia", "Turkey", "Turkmenistan",
 "Tuvalu", "Uganda", "Ukraine", "UAE", "UK", "USA", "Uzbekistan", "Vanuatu", "Venezuela",
 "Vietnam", "Yemen", "Zambia", "Zimbabwe"
-  ];
+  ], []); // Memoize to prevent recreation
 
-  // Default field of study options
-  const defaultFieldsOfStudy = filterOptions?.fieldsOfStudy || [
+  // Memoize field of study options
+  const defaultFieldsOfStudy = useMemo(() => filterOptions?.fieldsOfStudy || [
     'Education & Training',
     'Arts, Design & Media',
     'Humanities & Social Sciences',
@@ -66,14 +67,14 @@ export const ScholarshipSidebarFilters = ({
     'Library & Information Management',
     'Transportation & Logistics',
     'All fields'
-  ];
+  ], [filterOptions?.fieldsOfStudy]);
 
-  // Default degree levels
-  const defaultDegreeLevels = [
+  // Memoize degree levels
+  const defaultDegreeLevels = useMemo(() => [
     "Bachelor",
     "Master",
     "PhD",
-  ];
+  ], []);
 
   return (
     <div className="w-full lg:w-72 bg-white border border-gray-200 rounded-lg p-4 space-y-6 h-fit lg:sticky lg:top-6">
