@@ -330,16 +330,16 @@ export function ChatboxBase({
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-gray-200 rounded-b-lg">
-        <div className="flex items-center space-x-2">
+      <div className="p-3 sm:p-4 bg-white border-t border-gray-200 rounded-b-lg">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <button
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="hidden sm:block p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
             aria-label="Emoji"
           >
             <Smile className="w-5 h-5 text-gray-500" />
           </button>
           <button
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="hidden sm:block p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
             aria-label="Attach"
           >
             <Paperclip className="w-5 h-5 text-gray-500" />
@@ -350,23 +350,23 @@ export function ChatboxBase({
             onChange={(e) => onInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter your message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="flex-1 min-w-0 px-3 sm:px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
           />
           {isThinking ? (
             <button
               onClick={onStop}
-              className="p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+              className="flex-shrink-0 p-2 sm:p-3 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
               aria-label="Stop"
             >
-              <div className="w-3 h-3 bg-white rounded-sm" />
+              <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-sm" />
             </button>
           ) : (
             <button
               onClick={onSend}
-              className="p-3 bg-blue-900 text-white rounded-full hover:bg-blue-800 transition-colors"
+              className="flex-shrink-0 p-2 sm:p-3 bg-blue-900 text-white rounded-full hover:bg-blue-800 transition-colors"
               aria-label="Send"
             >
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           )}
         </div>
