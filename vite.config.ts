@@ -36,28 +36,32 @@ export default defineConfig({
   },
   optimizeDeps: { 
     exclude: ['fsevents'],
-    include: ['react', 'react-dom', 'react-router', '@tanstack/react-query']
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'scheduler']
   },
   build: {
     rollupOptions: {
       external: ['fs/promises'],
       output: {
-        experimentalMinChunkSize: 3500,
         manualChunks: (id) => {
-          // Core vendor chunk
+          // CRITICAL: Keep React and ReactDOM together
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
+            // React core (must be together)
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
+              return 'vendor';
             }
+            // React Query
             if (id.includes('@tanstack/react-query')) {
-              return 'react-query-vendor';
+              return 'react-query';
             }
-            if (id.includes('firebase')) {
-              return 'firebase-vendor';
+            // Firebase
+            if (id.includes('firebase') || id.includes('@firebase')) {
+              return 'firebase';
             }
+            // Icons
             if (id.includes('lucide-react')) {
-              return 'icons-vendor';
+              return 'icons';
             }
+            // Other vendor code
             return 'vendor';
           }
           
