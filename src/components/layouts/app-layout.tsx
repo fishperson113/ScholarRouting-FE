@@ -1,4 +1,5 @@
 import { Bell, ChevronDown, LogOut, User } from 'lucide-react';
+import { NotificationDropdown } from '@/components/notifications/notifications-dropdown';
 import { Link, useNavigate, useLocation } from 'react-router';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -131,11 +132,10 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="hidden md:flex items-center justify-center flex-1 gap-12">
               <Link
                 to={paths.app.scholarships.getHref()}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActiveLink(paths.app.scholarships.getHref())
-                    ? 'text-purple-600 bg-purple-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActiveLink(paths.app.scholarships.getHref())
+                  ? 'text-purple-600 bg-purple-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
               >
                 🔍 Scholarships
               </Link>
@@ -150,11 +150,10 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                     });
                   }
                 }}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActiveLink(paths.app.applications.getHref())
-                    ? 'text-purple-600 bg-purple-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActiveLink(paths.app.applications.getHref())
+                  ? 'text-purple-600 bg-purple-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
               >
                 📄 My Applications
               </Link>
@@ -169,11 +168,10 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                     });
                   }
                 }}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActiveLink(paths.app.profile.getHref())
-                    ? 'text-purple-600 bg-purple-50'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActiveLink(paths.app.profile.getHref())
+                  ? 'text-purple-600 bg-purple-50'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
               >
                 👤 Profile
               </Link>
@@ -182,21 +180,21 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
             {/* Right Side - User Profile */}
             <div className="flex items-center space-x-4">
               {/* Notification Bell */}
-              <button 
-                onClick={() => {
-                  if (isGuest) {
+              {isGuest ? (
+                <button
+                  onClick={() => {
                     warning({
                       title: 'Authentication Required',
                       message: 'Please sign in to view notifications',
                     });
-                  }
-                }}
-                className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                disabled={isGuest}
-              >
-                <Bell className={`w-5 h-5 ${isGuest ? 'opacity-50' : ''}`} />
-                {!isGuest && <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>}
-              </button>
+                  }}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors opacity-50"
+                >
+                  <Bell className="w-5 h-5" />
+                </button>
+              ) : (
+                <NotificationDropdown />
+              )}
 
               {/* User Profile */}
               <div className="relative" ref={dropdownRef}>
