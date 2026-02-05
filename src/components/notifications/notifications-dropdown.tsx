@@ -78,9 +78,7 @@ export const NotificationDropdown = () => {
         <div className="relative" ref={dropdownRef}>
             {/* Bell Trigger */}
             <button
-                onClick={() => {
-                    setIsOpen(!isOpen);
-                }}
+                onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-purple-100"
             >
                 <Bell className={cn("w-5 h-5", isOpen && "text-purple-600")} />
