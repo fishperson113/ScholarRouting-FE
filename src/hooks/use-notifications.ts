@@ -81,7 +81,13 @@ export const useNotifications = () => {
             setUnreadCount(count);
             setLoading(false);
         }, (error) => {
-            console.error("Error fetching notifications:", error);
+            // Suppress Permission Error to avoid red screen during dev if rules are not set
+            if (error.code === 'permission-denied') {
+                console.warn("⚠️ Notification access denied. Check Firestore Security Rules.");
+            } else {
+                console.error("Error fetching notifications:", error);
+            }
+            setNotifications([]);
             setLoading(false);
         });
 

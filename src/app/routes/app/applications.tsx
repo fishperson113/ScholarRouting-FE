@@ -76,7 +76,7 @@ const ApplicationsRoute = () => {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [applicationToDelete, setApplicationToDelete] = useState<Application | null>(null);
-  
+
   const filterDropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -108,24 +108,30 @@ const ApplicationsRoute = () => {
 
   // Transform API data to UI format
   const applications = useMemo(() => {
-    if (!applicationsData?.applications) return [];
-    
-    return applicationsData.applications.map((app: any) => {
+    // Backend returns array directly, but type definition expects { applications: [] }
+    // We handle both cases for robustness
+    const rawList = Array.isArray(applicationsData)
+      ? applicationsData
+      : applicationsData?.applications || [];
+
+    if (!rawList.length) return [];
+
+    return rawList.map((app: any) => {
       // Format applied_date to dd/mm/yyyy for deadline column
       const formattedDeadline = app.applied_date ? formatDate(app.applied_date) : 'No deadline';
-      
+
       // Check if deadline is urgent (within 30 days) using applied_date
       const isUrgent = app.applied_date ? isDeadlineUrgent(app.applied_date) : false;
-      
+
       // Ensure status is one of the valid values, default to 'submitted'
-      const validStatus: ApplicationStatus = 
+      const validStatus: ApplicationStatus =
         app.status && ['submitted', 'under_review', 'accepted', 'rejected', 'withdrawn'].includes(app.status)
           ? (app.status as ApplicationStatus)
           : 'submitted';
-      
+
       // The API returns 'name' not 'scholarship_name'
       const scholarshipName = app.name || app.scholarship_name || 'Unknown Scholarship';
-      
+
       return {
         id: app.scholarship_id,
         scholarshipName: scholarshipName,
@@ -145,7 +151,7 @@ const ApplicationsRoute = () => {
       if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
         setFilterDropdownOpen(false);
       }
-      
+
       if (openStatusDropdown) {
         const dropdownRef = statusDropdownRefs.current[openStatusDropdown];
         if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
@@ -160,7 +166,7 @@ const ApplicationsRoute = () => {
 
   const handleStatusChange = async (appId: string, newStatus: ApplicationStatus) => {
     if (!uid) return;
-    
+
     try {
       await updateApplicationMutation.mutateAsync({
         uid,
@@ -182,7 +188,7 @@ const ApplicationsRoute = () => {
 
   const handleDeleteConfirm = async () => {
     if (!uid || !applicationToDelete) return;
-    
+
     try {
       await deleteApplicationMutation.mutateAsync({
         uid,
@@ -205,7 +211,7 @@ const ApplicationsRoute = () => {
 
   const filteredApplications = applications.filter(app => {
     const matchesSearch = app.scholarshipName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         app.institution.toLowerCase().includes(searchQuery.toLowerCase());
+      app.institution.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All Status' || app.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -233,7 +239,7 @@ const ApplicationsRoute = () => {
   // Error state with detailed information
   if (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    
+
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto p-6 space-y-4">
@@ -251,7 +257,7 @@ const ApplicationsRoute = () => {
               Try Again
             </button>
           </div>
-          
+
           {/* Debug information */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h3 className="font-semibold text-yellow-900 mb-2">Troubleshooting Steps:</h3>
@@ -294,14 +300,14 @@ const ApplicationsRoute = () => {
 
             {/* Status Filter */}
             <div className="relative" ref={filterDropdownRef}>
-              <button 
+              <button
                 onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
               >
                 <span className="text-sm text-gray-700">{statusFilter}</span>
                 <ChevronDown className="w-4 h-4 text-gray-500" />
               </button>
-              
+
               {filterDropdownOpen && (
                 <div className="absolute top-full mt-1 right-0 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                   <div className="py-1">
@@ -411,7 +417,7 @@ const ApplicationsRoute = () => {
                       {/* Status */}
                       <td className="px-6 py-4">
                         <div className="relative" ref={el => statusDropdownRefs.current[app.id] = el}>
-                          <button 
+                          <button
                             onClick={() => setOpenStatusDropdown(openStatusDropdown === app.id ? null : app.id)}
                             className={cn(
                               'inline-flex items-center gap-1 px-3 py-1 rounded-md text-sm font-medium border',
@@ -421,9 +427,9 @@ const ApplicationsRoute = () => {
                             {statusLabels[app.status]}
                             <ChevronDown className="w-3 h-3" />
                           </button>
-                          
+
                           {openStatusDropdown === app.id && statusDropdownRefs.current[app.id] && (
-                            <div 
+                            <div
                               className="fixed mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-2xl z-[9999]"
                               style={{
                                 top: `${statusDropdownRefs.current[app.id]!.getBoundingClientRect().bottom + 4}px`,
@@ -480,7 +486,7 @@ const ApplicationsRoute = () => {
 
                       {/* Actions */}
                       <td className="px-6 py-4">
-                        <button 
+                        <button
                           onClick={() => handleDeleteClick(app)}
                           className="p-2 hover:bg-red-50 rounded transition-colors group"
                           title="Delete application"
