@@ -120,10 +120,19 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
             : fundingInfo
           : undefined;
 
-        // Format deadline
+        // Format deadline for display
         const deadline = scholarship.End_Date || scholarship.deadline
           ? formatDeadline(scholarship.End_Date || scholarship.deadline)
           : undefined;
+
+        // Raw deadline for backend save (ISO format preferred)
+        let rawDeadline = scholarship.End_Date || scholarship.deadline;
+        if (rawDeadline) {
+          const date = new Date(rawDeadline);
+          if (!isNaN(date.getTime())) {
+            rawDeadline = date.toISOString();
+          }
+        }
 
         // Extract wanted degree for the badge
         const wantedDegree = scholarship.Wanted_Degree;
@@ -167,6 +176,7 @@ export const useScholarshipCard = (scholarships: RawScholarship[]) => {
           description,
           amount,
           deadline,
+          rawDeadline,
           requirements: requirements.slice(0, 3), // Limit to 3 requirements
           isUrgent,
           isSaved: savedScholarshipIds.has(id), // Check if this scholarship is saved

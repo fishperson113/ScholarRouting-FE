@@ -55,14 +55,19 @@ function isDeadlineUrgent(deadline: string): boolean {
 
 // Helper function to format ISO 8601 date to dd/mm/yyyy
 function formatDate(isoDate: string): string {
+  if (!isoDate) return 'No deadline';
   try {
     const date = new Date(isoDate);
+    if (isNaN(date.getTime())) {
+      // If parsing fails, return the original string (might be pre-formatted or localized)
+      return isoDate;
+    }
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   } catch {
-    return 'Invalid date';
+    return isoDate;
   }
 }
 
@@ -384,7 +389,7 @@ const ApplicationsRoute = () => {
                     Status
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">
-                    Applied Date
+                    Deadline
                   </th>
                   <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider w-[30%]">
                     Notes

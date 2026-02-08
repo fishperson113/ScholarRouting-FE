@@ -20,6 +20,7 @@ export interface ScholarshipCardProps {
   isSaved?: boolean;
   officialUrl?: string;
   wantedDegree?: string;
+  rawDeadline?: string;
   onSave?: (id: string) => void;
   onViewDetails?: (id: string) => void;
 }
@@ -33,6 +34,7 @@ export const ScholarshipCard = ({
   description,
   amount,
   deadline,
+  rawDeadline,
   requirements = [],
   isUrgent = false,
   isSaved = false,
@@ -82,7 +84,7 @@ export const ScholarshipCard = ({
           application: {
             scholarship_id: id,
             scholarship_name: title,
-            apply_date: new Date().toISOString(),
+            apply_date: rawDeadline || '',
             status: 'submitted',
             note: '',
           },
