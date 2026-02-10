@@ -1,23 +1,12 @@
-
-import { useState, useEffect } from 'react';
-import {
-    collection,
-    query,
-    where,
-    orderBy,
-    onSnapshot,
-    doc,
-    updateDoc,
-    writeBatch,
-    addDoc,
-    serverTimestamp,
-    limit
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+// Replace Firestore imports with API calls
+import { useState, useEffect, useCallback } from 'react';
 import { useUser } from '@/lib/auth';
+import { getNotifications, markNotificationRead } from '@/lib/api-client';
 
 export type NotificationType =
     | 'DEADLINE_WARNING'
+    | 'DEADLINE_MISSED'
+    | 'APPLICATION_ADDED'
     | 'APPLICATION_STATUS'
     | 'SCHOLARSHIP_MATCH'
     | 'SYSTEM_ALERT';
@@ -29,7 +18,7 @@ export interface Notification {
     title: string;
     message: string;
     isRead: boolean;
-    createdAt: any; // Firestore Timestamp
+    createdAt: any;
     link?: string;
     metadata?: {
         scholarshipId?: string;
@@ -45,106 +34,74 @@ export const useNotifications = () => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    const fetchNotifications = useCallback(async () => {
+        if (!user.data?.uid) return;
+
+        try {
+            const response = await getNotifications(user.data.uid);
+
+            // Transform API data to match UI expectations
+            // UI expects createdAt to have .toDate() method (Firestore Timestamp style)
+            const transformedData = (response as any).map((item: any) => ({
+                ...item,
+                createdAt: item.createdAt ? { toDate: () => new Date(item.createdAt) } : null
+            }));
+
+            setNotifications(transformedData);
+            setUnreadCount(transformedData.filter((n: Notification) => !n.isRead).length);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [user.data?.uid]);
+
+    // Initial fetch + Polling every 60s
     useEffect(() => {
         if (!user.data?.uid) {
             setNotifications([]);
             setUnreadCount(0);
-            setLoading(false);
             return;
         }
 
-        const userId = user.data.uid;
+        fetchNotifications();
 
-        // Query notifications for current user, ordered by time
-        const q = query(
-            collection(db, 'notifications'),
-            where('userId', '==', userId),
-            orderBy('createdAt', 'desc'),
-            limit(20) // Limit to last 20 notifications for performance
-        );
-
-        // Real-time listener
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const notifs: Notification[] = [];
-            let count = 0;
-
-            snapshot.forEach((doc) => {
-                const data = doc.data() as Omit<Notification, 'id'>;
-                if (!data.isRead) count++;
-                notifs.push({
-                    id: doc.id,
-                    ...data,
-                });
-            });
-
-            setNotifications(notifs);
-            setUnreadCount(count);
-            setLoading(false);
-        }, (error) => {
-            // Suppress Permission Error to avoid red screen during dev if rules are not set
-            if (error.code === 'permission-denied') {
-                console.warn("⚠️ Notification access denied. Check Firestore Security Rules.");
-            } else {
-                console.error("Error fetching notifications:", error);
-            }
-            setNotifications([]);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, [user.data?.uid]);
+        const interval = setInterval(fetchNotifications, 60000); // 60 seconds polling
+        return () => clearInterval(interval);
+    }, [user.data?.uid, fetchNotifications]);
 
     // Actions
     const markAsRead = async (notificationId: string) => {
         if (!user.data?.uid) return;
+
+        // Optimistic Update
+        setNotifications((prev) =>
+            prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+
         try {
-            const notifRef = doc(db, 'notifications', notificationId);
-            await updateDoc(notifRef, { isRead: true });
+            await markNotificationRead(user.data.uid, notificationId);
         } catch (error) {
-            console.error("Error marking notification as read:", error);
+            console.error("Error marking as read:", error);
+            // Revert on error if critical, but for read status usually ignore
         }
     };
 
     const markAllAsRead = async () => {
         if (!user.data?.uid || notifications.length === 0) return;
 
-        const batch = writeBatch(db);
-        const unreadNotifs = notifications.filter(n => !n.isRead);
+        const unreadIds = notifications.filter((n) => !n.isRead).map((n) => n.id);
+        if (unreadIds.length === 0) return;
 
-        if (unreadNotifs.length === 0) return;
+        // Optimistic Update
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+        setUnreadCount(0);
 
-        unreadNotifs.forEach(notif => {
-            const notifRef = doc(db, 'notifications', notif.id);
-            batch.update(notifRef, { isRead: true });
+        // Process in background (serially or parallel)
+        unreadIds.forEach(id => {
+            markNotificationRead(user.data!.uid, id).catch(e => console.error(e));
         });
-
-        try {
-            await batch.commit();
-        } catch (error) {
-            console.error("Error marking all as read:", error);
-        }
-    };
-
-    // Helper function to send a test notification (Development only)
-    const sendTestNotification = async () => {
-        if (!user.data?.uid) return;
-
-        try {
-            await addDoc(collection(db, 'notifications'), {
-                userId: user.data.uid,
-                type: 'DEADLINE_WARNING',
-                title: 'Sắp hết hạn nộp hồ sơ!',
-                message: 'Học bổng Erasmus Mundus sẽ đóng đơn trong 3 ngày nữa.',
-                isRead: false,
-                createdAt: serverTimestamp(),
-                link: '/app/applications',
-                metadata: {
-                    daysLeft: 3
-                }
-            });
-        } catch (error) {
-            console.error("Error sending test notification:", error);
-        }
     };
 
     return {
@@ -153,6 +110,6 @@ export const useNotifications = () => {
         loading,
         markAsRead,
         markAllAsRead,
-        sendTestNotification
+        refetch: fetchNotifications
     };
 };

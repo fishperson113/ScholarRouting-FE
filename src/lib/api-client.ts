@@ -148,3 +148,13 @@ export const authenticatedFetch = async (url: string, options: RequestInit = {})
     headers,
   });
 };
+
+// ==================== Notification API ====================
+
+export const getNotifications = (uid: string) => {
+  return api.get(`/user/applications/${uid}/notifications`);
+};
+
+export const markNotificationRead = (uid: string, id: string) => {
+  return api.put(`/user/applications/${uid}/notifications/${id}/read`);
+};
