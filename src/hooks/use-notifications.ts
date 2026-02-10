@@ -1,7 +1,7 @@
-// Replace Firestore imports with API calls
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUser } from '@/lib/auth';
 import { getNotifications, markNotificationRead } from '@/lib/api-client';
+import { env } from '@/config/env';
 
 export type NotificationType =
     | 'DEADLINE_WARNING'
@@ -33,6 +33,7 @@ export const useNotifications = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(true);
+    const wsRef = useRef<WebSocket | null>(null);
 
     const fetchNotifications = useCallback(async () => {
         if (!user.data?.uid) return;
@@ -56,7 +57,74 @@ export const useNotifications = () => {
         }
     }, [user.data?.uid]);
 
-    // Initial fetch + Polling every 60s
+    // WebSocket Integration
+    useEffect(() => {
+        if (!user.data?.uid) return;
+        const uid = user.data.uid; // Capture UID (safe string)
+        let timeoutId: NodeJS.Timeout;
+
+        const connectWebSocket = () => {
+            const apiUrl = env.API_URL; // e.g., http://localhost:8000/api/v1
+            const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
+            const hostPath = apiUrl.replace(/^https?:\/\//, '');
+            // Construct WS URL: ws://localhost:8000/api/v1/realtime/ws/updates/user.{uid}.notifications
+            const wsUrl = `${wsProtocol}://${hostPath}/realtime/ws/updates/user.${uid}.notifications`;
+
+            console.log('🔌 Connecting to Notification WebSocket:', wsUrl);
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('✅ WebSocket Connected');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const rawData = JSON.parse(event.data);
+                    console.log('🔔 Realtime Notification Received:', rawData);
+
+                    // Transform incoming data
+                    const newNotification: Notification = {
+                        ...rawData,
+                        createdAt: rawData.createdAt ? { toDate: () => new Date(rawData.createdAt) } : { toDate: () => new Date() }
+                    };
+
+                    setNotifications(prev => {
+                        // Avoid duplicates if possible (though backend should handle unique IDs)
+                        if (prev.some(n => n.id === newNotification.id)) return prev;
+                        return [newNotification, ...prev];
+                    });
+                    setUnreadCount(prev => prev + 1);
+
+                } catch (e) {
+                    console.error('❌ Error parsing websocket message:', e);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('🔌 WebSocket Disconnected, reconnecting in 5s...');
+                timeoutId = setTimeout(() => {
+                    // Only reconnect if the component is still mounted and user is same
+                    // (But actually, if user changes, this effect cleans up and new one starts)
+                    connectWebSocket();
+                }, 5000);
+            };
+
+            wsRef.current = ws;
+        };
+
+        connectWebSocket();
+
+        return () => {
+            if (wsRef.current) {
+                // Remove listener to prevent "onclose" triggering reconnect during cleanup
+                wsRef.current.onclose = null;
+                wsRef.current.close();
+            }
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [user.data?.uid]);
+
+    // Initial fetch + Polling (Fallback - 5 minutes)
     useEffect(() => {
         if (!user.data?.uid) {
             setNotifications([]);
@@ -66,7 +134,7 @@ export const useNotifications = () => {
 
         fetchNotifications();
 
-        const interval = setInterval(fetchNotifications, 60000); // 60 seconds polling
+        const interval = setInterval(fetchNotifications, 300000); // 5 minutes fallback
         return () => clearInterval(interval);
     }, [user.data?.uid, fetchNotifications]);
 
