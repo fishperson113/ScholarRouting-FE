@@ -15,13 +15,13 @@ export const useScholarshipInterests = (uid?: string) => {
     queryFn: async () => {
       const currentUid = uid || auth.currentUser?.uid;
       if (!currentUid) throw new Error('No user ID provided');
-      
+
       const response = await authenticatedFetch(`${API_URL}/user/interests/${currentUid}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch interests');
       }
-      
+
       return response.json() as Promise<{ uid: string; interests: ScholarshipInterest[] }>;
     },
     enabled: !!uid || !!auth.currentUser,
@@ -31,19 +31,19 @@ export const useScholarshipInterests = (uid?: string) => {
 // Add scholarship interest
 export const useAddScholarshipInterest = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ uid, interest }: { uid: string; interest: ScholarshipInterest }) => {
       const response = await authenticatedFetch(`${API_URL}/user/interests/${uid}/add`, {
         method: 'POST',
         body: JSON.stringify(interest),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to add interest');
       }
-      
+
       return response.json();
     },
     onSuccess: (_, variables) => {
@@ -55,19 +55,19 @@ export const useAddScholarshipInterest = () => {
 // Update scholarship interest
 export const useUpdateScholarshipInterest = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ uid, interest }: { uid: string; interest: Partial<ScholarshipInterest> & { scholarship_id: string } }) => {
       const response = await authenticatedFetch(`${API_URL}/user/interests/${uid}`, {
         method: 'PUT',
         body: JSON.stringify(interest),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to update interest');
       }
-      
+
       return response.json();
     },
     onSuccess: (_, variables) => {
@@ -79,18 +79,18 @@ export const useUpdateScholarshipInterest = () => {
 // Delete scholarship interest
 export const useDeleteScholarshipInterest = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ uid, scholarshipId }: { uid: string; scholarshipId: string }) => {
       const response = await authenticatedFetch(`${API_URL}/user/interests/${uid}/${scholarshipId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to delete interest');
       }
-      
+
       return response.json();
     },
     onSuccess: (_, variables) => {
@@ -110,13 +110,13 @@ export const useScholarshipApplications = (uid?: string) => {
       if (!currentUid) {
         throw new Error('No user ID provided. Please log in.');
       }
-      
+
       const response = await authenticatedFetch(`${API_URL}/user/applications/${currentUid}`);
-      
+
       if (!response.ok) {
         throw new Error(`Failed to fetch applications: ${response.status} ${response.statusText}`);
       }
-      
+
       return response.json() as Promise<{ uid: string; applications: ScholarshipApplication[] }>;
     },
     enabled: !!uid || !!auth.currentUser,
@@ -128,19 +128,19 @@ export const useScholarshipApplications = (uid?: string) => {
 // Add scholarship application
 export const useAddScholarshipApplication = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ uid, application }: { uid: string; application: ScholarshipApplication }) => {
       const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}/add`, {
         method: 'POST',
         body: JSON.stringify(application),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to add application');
       }
-      
+
       return response.json();
     },
     onSuccess: (_, variables) => {
@@ -152,19 +152,19 @@ export const useAddScholarshipApplication = () => {
 // Update scholarship application
 export const useUpdateScholarshipApplication = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ uid, application }: { uid: string; application: Partial<ScholarshipApplication> & { scholarship_id: string } }) => {
       const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}`, {
         method: 'PUT',
         body: JSON.stringify(application),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to update application');
       }
-      
+
       return response.json();
     },
     onSuccess: (_, variables) => {
@@ -176,18 +176,22 @@ export const useUpdateScholarshipApplication = () => {
 // Delete scholarship application
 export const useDeleteScholarshipApplication = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ uid, scholarshipId }: { uid: string; scholarshipId: string }) => {
-      const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}/${scholarshipId}`, {
+      // Use the new endpoint to delete by scholarship ID
+      const response = await authenticatedFetch(`${API_URL}/user/applications/${uid}/scholarship/${scholarshipId}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
+        // Ignore 404 (already deleted)
+        if (response.status === 404) return { status: 'success' };
+
         const error = await response.json();
         throw new Error(error.detail || 'Failed to delete application');
       }
-      
+
       return response.json();
     },
     onSuccess: (_, variables) => {

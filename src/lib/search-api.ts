@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { env } from '@/config/env';
+import { authenticatedFetch } from '@/lib/api-client';
 import { FilterOperator, FilterItem, SearchResult } from '@/types/search';
 
 const API_URL = env.API_URL;
@@ -25,13 +26,13 @@ export const useScholarshipSearch = (
         size: String(options?.size || 10),
         offset: String(options?.offset || 0),
       });
-      
-      const response = await fetch(`${API_URL}/es/search?${params}`);
-      
+
+      const response = await authenticatedFetch(`${API_URL}/es/search?${params}`);
+
       if (!response.ok) {
         throw new Error('Failed to search scholarships');
       }
-      
+
       return response.json() as Promise<SearchResult>;
     },
     enabled: options?.enabled !== false && !!query && !!collection,
@@ -62,19 +63,16 @@ export const useScholarshipFilter = () => {
         offset: String(offset),
         inter_field_operator: interFieldOperator,
       });
-      
-      const response = await fetch(`${API_URL}/es/filter?${params}`, {
+
+      const response = await authenticatedFetch(`${API_URL}/es/filter?${params}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(filters),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to filter scholarships');
       }
-      
+
       return response.json() as Promise<SearchResult>;
     },
   });
@@ -87,15 +85,15 @@ export const useSyncFirestoreToES = () => {
   return useMutation({
     mutationFn: async (collection: string) => {
       const params = new URLSearchParams({ collection });
-      
-      const response = await fetch(`${API_URL}/es/sync?${params}`, {
+
+      const response = await authenticatedFetch(`${API_URL}/es/sync?${params}`, {
         method: 'POST',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to sync collection');
       }
-      
+
       return response.json() as Promise<{ status: string; indexed: number; collection: string }>;
     },
   });

@@ -20,6 +20,7 @@ export interface ScholarshipCardProps {
   isSaved?: boolean;
   officialUrl?: string;
   wantedDegree?: string;
+  rawDeadline?: string;
   onSave?: (id: string) => void;
   onViewDetails?: (id: string) => void;
 }
@@ -33,6 +34,7 @@ export const ScholarshipCard = ({
   description,
   amount,
   deadline,
+  rawDeadline,
   requirements = [],
   isUrgent = false,
   isSaved = false,
@@ -45,7 +47,7 @@ export const ScholarshipCard = ({
   const user = useUser();
   const uid = user.data?.uid;
   const { success, error } = useToast();
-  
+
   const addApplicationMutation = useAddScholarshipApplication();
   const deleteApplicationMutation = useDeleteScholarshipApplication();
 
@@ -81,10 +83,10 @@ export const ScholarshipCard = ({
           uid,
           application: {
             scholarship_id: id,
-            name: title,
-            applied_date: new Date().toISOString(),
+            scholarship_name: title,
+            apply_date: rawDeadline || '',
             status: 'submitted',
-            notes: '',
+            note: '',
           },
         });
         setSaved(true);
@@ -93,7 +95,7 @@ export const ScholarshipCard = ({
           message: `${title} has been added to your applications`,
         });
       }
-      
+
       // Call the optional onSave callback
       onSave?.(id);
     } catch (err) {
@@ -148,7 +150,7 @@ export const ScholarshipCard = ({
           </span>
         </div>
       )}
-      
+
       {/* Header */}
       <div className="flex items-start justify-between mb-3 mt-2">
         <div className="flex-1">
@@ -162,7 +164,7 @@ export const ScholarshipCard = ({
               </span>
             )}
           </div>
-          
+
           {/* Location and Type */}
           {(location || type) && (
             <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
@@ -215,7 +217,7 @@ export const ScholarshipCard = ({
             </div>
           </div>
         )}
-        
+
         {deadline && (
           <div className="flex items-start gap-2">
             <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -257,7 +259,7 @@ export const ScholarshipCard = ({
         >
           View Details
         </Button>
-        
+
         <Button
           variant="outline"
           size="icon"
@@ -275,7 +277,7 @@ export const ScholarshipCard = ({
             )}
           />
         </Button>
-        
+
         <Button
           variant="outline"
           size="icon"

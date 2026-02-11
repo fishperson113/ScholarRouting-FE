@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useToast } from './use-toast';
+import { authenticatedFetch } from '@/lib/api-client';
 import { useScholarshipFilter } from '@/lib/search-api';
 import { env } from '@/config/env';
 import { SCHOLARSHIP_FIELD_MAPPING, getElasticsearchFieldName } from '@/types/field-mapping';
@@ -14,7 +15,7 @@ interface UseScholarshipsOptions {
 }
 
 export const useScholarships = (options?: UseScholarshipsOptions) => {
-  const { collection = 'scholarships_403', initialPageSize = 20, onError } = options || {};
+  const { collection = 'scholarships', initialPageSize = 20, onError } = options || {};
   const { error: showError } = useToast();
 
   // Load filters from localStorage on mount
@@ -76,7 +77,7 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
     setIsLoading(true);
     try {
       let result: any;
-      
+
       // Use SEARCH endpoint when there's a search query (full-text search)
       if (searchQuery.trim()) {
         const params = new URLSearchParams({
@@ -85,16 +86,16 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
           size: String(initialPageSize),
           offset: String(currentOffset),
         });
-        
-        const response = await fetch(`${API_URL}/es/search?${params}`);
-        
+
+        const response = await authenticatedFetch(`${API_URL}/es/search?${params}`);
+
         if (!response.ok) {
           throw new Error('Failed to search scholarships');
         }
-        
+
         result = await response.json();
         console.log('Search API Response:', result);
-      } 
+      }
       // Use FILTER endpoint when there are filters (exact match)
       else {
         // Build filter items from filters only
@@ -113,30 +114,30 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
           size: initialPageSize,
           offset: currentOffset,
         });
-        
+
         console.log('Filter API Response:', result);
       }
-      
+
       // Handle the response - the API returns { total, hits, took }
       // Each hit might have different structures, so we normalize it
       const resultData = result as any;
       const items = resultData?.items || resultData?.hits || [];
-      
+
       console.log('Extracted items:', items);
-      
+
       // Either append to existing scholarships or replace them
       if (append) {
         setScholarships(prev => [...prev, ...items]);
       } else {
         setScholarships(items);
       }
-      
+
       setTotal(resultData?.total || 0);
-      
+
       // Check if there are more items to load
       const newTotalLoaded = append ? scholarships.length + items.length : items.length;
       setHasMore(newTotalLoaded < (resultData?.total || 0));
-      
+
     } catch (err) {
       const error = err as Error;
       console.error('Error loading scholarships:', error);
@@ -145,7 +146,7 @@ export const useScholarships = (options?: UseScholarshipsOptions) => {
         message: error.message || 'Failed to load scholarships. Please try again.',
       });
       onError?.(error);
-      
+
       if (!append) {
         setScholarships([]);
         setTotal(0);
