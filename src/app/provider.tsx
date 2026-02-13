@@ -14,6 +14,8 @@ type AppProviderProps = {
   children: React.ReactNode;
 };
 
+import { NotificationProvider } from '@/components/notifications/notification-provider';
+
 export const AppProvider = ({ children }: AppProviderProps) => {
   const [queryClient] = React.useState(
     () =>
@@ -36,7 +38,9 @@ export const AppProvider = ({ children }: AppProviderProps) => {
             {import.meta.env.DEV && <ReactQueryDevtools />}
             <Notifications />
             {/* Temporarily disabled AuthLoader until backend is ready */}
-            {children}
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
           </QueryClientProvider>
         </HelmetProvider>
       </ErrorBoundary>
