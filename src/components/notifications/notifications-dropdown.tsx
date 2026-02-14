@@ -15,6 +15,8 @@ const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
         case 'DEADLINE_WARNING':
             return <Clock className="h-5 w-5 text-amber-500" />;
+        case 'DEADLINE_MISSED':
+            return <Clock className="h-5 w-5 text-red-500" />;
         case 'APPLICATION_STATUS':
             return <CheckCircle className="h-5 w-5 text-green-500" />;
         case 'SCHOLARSHIP_MATCH':
@@ -30,6 +32,8 @@ const getNotificationColor = (type: NotificationType) => {
     switch (type) {
         case 'DEADLINE_WARNING':
             return 'bg-amber-50';
+        case 'DEADLINE_MISSED':
+            return 'bg-red-50';
         case 'APPLICATION_STATUS':
             return 'bg-green-50';
         case 'SCHOLARSHIP_MATCH':
@@ -126,7 +130,11 @@ export const NotificationDropdown = () => {
                                             notif.isRead ? "bg-white hover:bg-gray-50" : "bg-purple-50/40 hover:bg-purple-50/70"
                                         )}
                                     >
-                                        <div className="flex gap-3">
+                                        <div className={cn(
+                                            "flex gap-3",
+                                            // Center align vertically if it's a deadline notification (no title), otherwise align top
+                                            ['DEADLINE_WARNING', 'DEADLINE_MISSED'].includes(notif.type) ? "items-center" : "items-start"
+                                        )}>
                                             {/* Icon */}
                                             <div className={cn(
                                                 "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center",
@@ -138,26 +146,45 @@ export const NotificationDropdown = () => {
                                             {/* Content */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex justify-between items-start">
-                                                    <p className={cn(
-                                                        "text-sm font-medium pr-2 truncate",
-                                                        notif.isRead ? "text-gray-700" : "text-gray-900"
-                                                    )}>
-                                                        {notif.title}
-                                                    </p>
-                                                    <span className="text-[10px] text-gray-400 whitespace-nowrap flex-shrink-0">
-                                                        {notif.createdAt ? dayjs(notif.createdAt?.toDate()).fromNow() : 'Just now'}
-                                                    </span>
+                                                    {/* Hide title for Deadline notifications, show for others */}
+                                                    {!['DEADLINE_WARNING', 'DEADLINE_MISSED'].includes(notif.type) && (
+                                                        <p className={cn(
+                                                            "text-sm font-medium pr-2 truncate",
+                                                            notif.isRead ? "text-gray-700" : "text-gray-900"
+                                                        )}>
+                                                            {notif.title}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Timestamp (top right) - Hide for deadline notifs */}
+                                                    {!['DEADLINE_WARNING', 'DEADLINE_MISSED'].includes(notif.type) && (
+                                                        <span className="text-[10px] text-gray-400 whitespace-nowrap flex-shrink-0">
+                                                            {notif.createdAt ? dayjs(notif.createdAt?.toDate()).fromNow() : 'Just now'}
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+
+                                                {/* Message becomes the main content */}
+                                                <p className={cn(
+                                                    "leading-relaxed",
+                                                    ['DEADLINE_WARNING', 'DEADLINE_MISSED'].includes(notif.type)
+                                                        ? (notif.isRead ? "text-[13px] text-gray-700 font-normal" : "text-[13px] text-gray-900 font-medium")
+                                                        : "text-xs text-gray-500 mt-0.5 line-clamp-2"
+                                                )}>
                                                     {notif.message}
                                                 </p>
 
-                                                {/* Custom content for Deadline */}
+                                                {/* Timestamp MOVED to bottom RIGHT for deadline notifs */}
+                                                {['DEADLINE_WARNING', 'DEADLINE_MISSED'].includes(notif.type) && (
+                                                    <p className="text-[10px] text-gray-400 mt-1 text-right">
+                                                        {notif.createdAt ? dayjs(notif.createdAt?.toDate()).fromNow() : 'Just now'}
+                                                    </p>
+                                                )}
+
+                                                {/* Custom content for Deadline (Expiring badge) removed/integrated */}
                                                 {notif.type === 'DEADLINE_WARNING' && notif.metadata?.daysLeft && (
-                                                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-700">
-                                                        <Clock className="w-3 h-3 mr-1" />
-                                                        Expiring in {notif.metadata?.daysLeft} days
-                                                    </div>
+                                                    // Optional: Keep the badge if you like, or remove it since message is clear now
+                                                    <div className="mt-1 hidden"></div>
                                                 )}
                                             </div>
 
@@ -174,14 +201,14 @@ export const NotificationDropdown = () => {
                         )}
                     </div>
 
-                    {/* Footer */}
-                    {notifications.length > 0 && (
+                    {/* Footer - REMOVED per user request */}
+                    {/* {notifications.length > 0 && (
                         <div className="p-2 bg-gray-50 border-t border-gray-100 text-center">
                             <Link to="/app/notifications" className="text-xs font-medium text-gray-500 hover:text-purple-600">
                                 View all notifications
                             </Link>
                         </div>
-                    )}
+                    )} */}
                 </div>
             )}
         </div>

@@ -85,6 +85,7 @@ export const ScholarshipCard = ({
             scholarship_id: id,
             scholarship_name: title,
             apply_date: rawDeadline || '',
+            deadline: rawDeadline || '',
             status: 'submitted',
             note: '',
           },
