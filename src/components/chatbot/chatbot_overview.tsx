@@ -322,7 +322,7 @@ export function Chatbot() {
     }, 3000);
 
     try {
-      const response = await fetch(`${env.API_URL}/chatbot/ask`, {
+      const response = await fetch(`${env.API_URL}/chat/sync`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

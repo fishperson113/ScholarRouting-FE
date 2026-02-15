@@ -15,7 +15,7 @@ interface UseScholarshipsOptions {
 }
 
 export const useScholarships = (options?: UseScholarshipsOptions) => {
-  const { collection = 'scholarships', initialPageSize = 20, onError } = options || {};
+  const { collection = 'scholarships_403', initialPageSize = 20, onError } = options || {};
   const { error: showError } = useToast();
 
   // Load filters from localStorage on mount
